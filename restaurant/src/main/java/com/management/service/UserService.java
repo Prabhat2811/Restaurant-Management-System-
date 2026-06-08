@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
 
 import com.management.dto.ResponseStructure;
 import com.management.dto.UserDto;
@@ -13,6 +14,7 @@ import com.management.exception.IdNotFoundException;
 import com.management.exception.ResourceNotFoundException;
 import com.management.repository.UserRepository;
 
+@Service
 public class UserService {
 	@Autowired
 	private UserRepository
