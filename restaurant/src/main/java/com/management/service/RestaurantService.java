@@ -1,0 +1,76 @@
+package com.management.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+
+import com.management.dto.ResponseStructure;
+import com.management.dto.RestaurantDto;
+import com.management.entity.Restaurant;
+import com.management.exception.IdNotFoundException;
+import com.management.exception.ResourceNotFoundException;
+import com.management.repository.RestaurantRepository;
+
+@Service
+public class RestaurantService {
+    @Autowired
+    private RestaurantRepository restaurantRepository;
+
+    public ResponseStructure<Restaurant> addRestaurant(RestaurantDto dto) {
+        Restaurant r = new Restaurant();
+        r.setName(dto.getName());
+        r.setCuisine(dto.getCuisine());
+        r.setAddress(dto.getAddress());
+        r.setPhone(dto.getPhone());
+        r.setIsOpen(true);
+        r.setRating(0.0);
+        return ResponseStructure.<Restaurant>builder()
+                .statusCode(HttpStatus.CREATED.value())
+                .message("Restaurant Added Successfully")
+                .data(restaurantRepository.save(r)).build();
+    }
+
+    public ResponseStructure<Restaurant> updateRestaurant(RestaurantDto dto) {
+        Restaurant r = restaurantRepository.findById(dto.getId())
+                .orElseThrow(() -> new IdNotFoundException("Restaurant Not Found"));
+        r.setName(dto.getName());
+        r.setCuisine(dto.getCuisine());
+        r.setAddress(dto.getAddress());
+        r.setPhone(dto.getPhone());
+        r.setIsOpen(dto.getIsOpen());
+        return ResponseStructure.<Restaurant>builder()
+                .statusCode(HttpStatus.OK.value())
+                .message("Restaurant Updated Successfully")
+                .data(restaurantRepository.save(r)).build();
+    }
+
+    public ResponseStructure<List<Restaurant>> getAllOpen() {
+        List<Restaurant> list = restaurantRepository.findByIsOpenTrue();
+        if (list.isEmpty()) throw new ResourceNotFoundException("No Open Restaurants Found");
+        return ResponseStructure.<List<Restaurant>>builder()
+                .statusCode(HttpStatus.FOUND.value())
+                .message(list.size() + " Restaurant(s) Found")
+                .data(list).build();
+    }
+
+    public ResponseStructure<List<Restaurant>> getByCuisine(String cuisine) {
+        List<Restaurant> list = restaurantRepository.findByCuisineIgnoreCase(cuisine);
+        if (list.isEmpty()) throw new ResourceNotFoundException("No Restaurants Found for cuisine: " + cuisine);
+        return ResponseStructure.<List<Restaurant>>builder()
+                .statusCode(HttpStatus.FOUND.value())
+                .message(list.size() + " Restaurant(s) Found")
+                .data(list).build();
+    }
+
+    public ResponseStructure<String> deleteRestaurant(Integer id) {
+        Restaurant r = restaurantRepository.findById(id)
+                .orElseThrow(() -> new IdNotFoundException("Restaurant Not Found"));
+        restaurantRepository.delete(r);
+        return ResponseStructure.<String>builder()
+                .statusCode(HttpStatus.OK.value())
+                .message("Restaurant Deleted Successfully")
+                .data("Deleted: " + r.getName()).build();
+    }
+}
