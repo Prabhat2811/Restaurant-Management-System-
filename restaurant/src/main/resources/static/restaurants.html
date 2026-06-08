@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Savor — Restaurants</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--cream:#FDF6EC;--dark:#1A1008;--amber:#C8762A;--amber-light:#E8A94A;--rust:#8B3A1A;--warm-gray:#8A7A6A;--font-display:'Playfair Display',serif;--font-body:'DM Sans',sans-serif}
+body{background:var(--cream);font-family:var(--font-body);min-height:100vh}
+nav{position:sticky;top:0;z-index:100;padding:1.2rem 3rem;display:flex;justify-content:space-between;align-items:center;background:rgba(253,246,236,0.95);backdrop-filter:blur(12px);border-bottom:1px solid rgba(200,118,42,0.15)}
+.nav-logo{font-family:var(--font-display);font-size:1.6rem;font-weight:900;color:var(--dark);text-decoration:none}
+.nav-logo span{color:var(--amber)}
+.nav-links{display:flex;gap:2rem;list-style:none}
+.nav-links a{text-decoration:none;color:var(--warm-gray);font-size:0.9rem;font-weight:500;letter-spacing:0.04em;text-transform:uppercase;transition:color 0.2s}
+.nav-links a:hover,.nav-links a.active{color:var(--amber)}
+.hero-bar{background:var(--dark);padding:3rem;text-align:center}
+.hero-bar h1{font-family:var(--font-display);font-size:2.5rem;color:white;margin-bottom:0.5rem}
+.hero-bar p{color:rgba(253,246,236,0.5);font-size:0.95rem}
+.search-bar{display:flex;gap:1rem;max-width:600px;margin:2rem auto 0}
+.search-bar input{flex:1;padding:0.8rem 1.2rem;border:none;border-radius:3px;font-family:var(--font-body);font-size:0.95rem}
+.search-bar button{padding:0.8rem 1.5rem;background:var(--amber);color:white;border:none;border-radius:3px;cursor:pointer;font-family:var(--font-body);font-weight:500}
+.main{max-width:1200px;margin:0 auto;padding:3rem}
+.filters{display:flex;gap:0.8rem;margin-bottom:2.5rem;flex-wrap:wrap}
+.filter-btn{padding:0.5rem 1.2rem;border:1.5px solid rgba(200,118,42,0.3);border-radius:20px;background:transparent;cursor:pointer;font-family:var(--font-body);font-size:0.85rem;color:var(--warm-gray);transition:all 0.2s}
+.filter-btn:hover,.filter-btn.active{background:var(--amber);color:white;border-color:var(--amber)}
+.section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem}
+.section-title{font-family:var(--font-display);font-size:1.5rem;font-weight:700}
+.count-badge{background:rgba(200,118,42,0.1);color:var(--amber);padding:0.3rem 0.8rem;border-radius:20px;font-size:0.82rem;font-weight:500}
+.restaurants-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.5rem}
+.r-card{background:white;border-radius:6px;overflow:hidden;border:1px solid rgba(200,118,42,0.1);transition:transform 0.25s,box-shadow 0.25s;cursor:pointer}
+.r-card:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(26,16,8,0.12)}
+.r-card-img{height:160px;background:linear-gradient(135deg,#2A1A0A,#4A2A10);display:flex;align-items:center;justify-content:center;font-size:3rem;position:relative}
+.r-badge{position:absolute;top:10px;right:10px;padding:0.25rem 0.6rem;border-radius:2px;font-size:0.72rem;font-weight:500;text-transform:uppercase;letter-spacing:0.05em}
+.badge-open{background:#D1FAE5;color:#065F46}
+.badge-closed{background:#FEE2E2;color:#991B1B}
+.r-card-body{padding:1.2rem}
+.r-name{font-family:var(--font-display);font-size:1.15rem;font-weight:700;margin-bottom:0.3rem}
+.r-meta{display:flex;align-items:center;gap:1rem;color:var(--warm-gray);font-size:0.82rem;margin-bottom:1rem}
+.r-rating{color:var(--amber);font-weight:500}
+.r-tags{display:flex;gap:0.5rem;flex-wrap:wrap}
+.r-tag{background:rgba(200,118,42,0.08);color:var(--amber);font-size:0.72rem;padding:0.2rem 0.5rem;border-radius:2px}
+.r-actions{display:flex;gap:0.5rem;margin-top:1rem;padding-top:1rem;border-top:1px solid rgba(200,118,42,0.1)}
+.btn-sm{padding:0.4rem 0.9rem;border-radius:2px;font-size:0.8rem;font-weight:500;cursor:pointer;border:none;font-family:var(--font-body);transition:all 0.2s}
+.btn-view{background:var(--dark);color:white}.btn-view:hover{background:var(--amber)}
+.btn-order{background:rgba(200,118,42,0.1);color:var(--amber)}.btn-order:hover{background:var(--amber);color:white}
+.loading{text-align:center;padding:4rem;color:var(--warm-gray)}
+.spin{display:inline-block;width:32px;height:32px;border:3px solid rgba(200,118,42,0.2);border-top-color:var(--amber);border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:1rem}
+@keyframes spin{to{transform:rotate(360deg)}}
+.add-restaurant-btn{position:fixed;bottom:2rem;right:2rem;background:var(--amber);color:white;padding:0.8rem 1.5rem;border-radius:3px;cursor:pointer;border:none;font-family:var(--font-body);font-weight:500;font-size:0.9rem;box-shadow:0 4px 20px rgba(200,118,42,0.4)}
+.modal-backdrop{position:fixed;inset:0;background:rgba(26,16,8,0.6);z-index:200;display:none;align-items:center;justify-content:center}
+.modal-backdrop.open{display:flex}
+.modal{background:var(--cream);padding:2.5rem;border-radius:6px;width:90%;max-width:480px}
+.modal h3{font-family:var(--font-display);font-size:1.4rem;margin-bottom:1.5rem}
+.form-group{margin-bottom:1rem}
+.form-group label{display:block;font-size:0.8rem;font-weight:500;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.3rem}
+.form-group input,.form-group select{width:100%;padding:0.7rem 0.9rem;border:1.5px solid rgba(200,118,42,0.25);border-radius:3px;font-family:var(--font-body);font-size:0.9rem;outline:none}
+.form-group input:focus{border-color:var(--amber)}
+.modal-actions{display:flex;gap:1rem;margin-top:1.5rem}
+.btn-cancel{flex:1;padding:0.7rem;border:1.5px solid var(--dark);border-radius:3px;background:transparent;cursor:pointer;font-family:var(--font-body);font-weight:500}
+.btn-save{flex:1;padding:0.7rem;background:var(--amber);color:white;border:none;border-radius:3px;cursor:pointer;font-family:var(--font-body);font-weight:500}
+.resp-msg{margin-top:0.8rem;padding:0.6rem;border-radius:3px;font-size:0.82rem;display:none}
+.resp-msg.s{background:#F0FDF4;color:#166534}.resp-msg.e{background:#FEF2F2;color:#991B1B}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">Sav<span>or</span></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="restaurants.html" class="active">Restaurants</a></li>
+    <li><a href="services.html">Services</a></li>
+    <li><a href="about.html">About</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+  <a href="register.html" style="background:var(--dark);color:var(--cream);padding:0.6rem 1.4rem;border-radius:2px;font-size:0.85rem;text-decoration:none">Account</a>
+</nav>
+
+<div class="hero-bar">
+  <h1>Find your next meal</h1>
+  <p>Browse from 500+ restaurants near you</p>
+  <div class="search-bar">
+    <input type="text" id="search-input" placeholder="Search by cuisine or name...">
+    <button onclick="searchRestaurants()">Search</button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="filters">
+    <button class="filter-btn active" onclick="loadAll(this)">All</button>
+    <button class="filter-btn" onclick="filterCuisine('Indian',this)">Indian</button>
+    <button class="filter-btn" onclick="filterCuisine('Chinese',this)">Chinese</button>
+    <button class="filter-btn" onclick="filterCuisine('Italian',this)">Italian</button>
+    <button class="filter-btn" onclick="filterCuisine('Continental',this)">Continental</button>
+    <button class="filter-btn" onclick="filterOpen(this)">Open Now</button>
+  </div>
+  <div class="section-header">
+    <div class="section-title">Restaurants</div>
+    <div class="count-badge" id="count-badge">Loading...</div>
+  </div>
+  <div class="restaurants-grid" id="restaurants-grid">
+    <div class="loading"><div class="spin"></div><br>Loading restaurants...</div>
+  </div>
+</div>
+
+<button class="add-restaurant-btn" onclick="openModal()">+ Add Restaurant</button>
+
+<div class="modal-backdrop" id="modal">
+  <div class="modal">
+    <h3>Add Restaurant</h3>
+    <div class="form-group"><label>Restaurant Name</label><input id="r-name" placeholder="Spice Garden"></div>
+    <div class="form-group"><label>Cuisine</label><input id="r-cuisine" placeholder="Indian"></div>
+    <div class="form-group"><label>Address</label><input id="r-address" placeholder="123 MG Road, Bangalore"></div>
+    <div class="form-group"><label>Phone</label><input id="r-phone" placeholder="9876543210"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" onclick="addRestaurant()">Save</button>
+    </div>
+    <div class="resp-msg" id="r-resp"></div>
+  </div>
+</div>
+
+<script>
+const BASE = 'http://localhost:8080';
+const emojis = ['🍛','🍜','🍕','🥘','🍱','🌮','🍣','🥗','🫕','🍲'];
+
+async function loadRestaurants(url, filterBtn) {
+  if(filterBtn){document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));filterBtn.classList.add('active')}
+  const grid = document.getElementById('restaurants-grid');
+  grid.innerHTML = '<div class="loading"><div class="spin"></div><br>Loading...</div>';
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    const list = data.data || [];
+    document.getElementById('count-badge').textContent = list.length + ' restaurants';
+    if(!list.length){grid.innerHTML='<div class="loading">No restaurants found</div>';return}
+    grid.innerHTML = list.map((r,i) => `
+      <div class="r-card">
+        <div class="r-card-img">${emojis[i%emojis.length]}
+          <div class="r-badge ${r.isOpen?'badge-open':'badge-closed'}">${r.isOpen?'Open':'Closed'}</div>
+        </div>
+        <div class="r-card-body">
+          <div class="r-name">${r.name}</div>
+          <div class="r-meta">
+            <span class="r-rating">★ ${r.rating||'New'}</span>
+            <span>${r.cuisine}</span>
+            <span>${r.phone||''}</span>
+          </div>
+          <div class="r-tags"><span class="r-tag">${r.cuisine}</span>${r.isOpen?'<span class="r-tag">Open</span>':''}</div>
+          <div class="r-actions">
+            <button class="btn-sm btn-view" onclick="viewMenu(${r.id})">View Menu</button>
+            <button class="btn-sm btn-order" onclick="placeOrder(${r.id})">Order Now</button>
+          </div>
+        </div>
+      </div>`).join('');
+  } catch(e){grid.innerHTML='<div class="loading">Could not connect to server.</div>'}
+}
+
+function loadAll(btn){loadRestaurants(`${BASE}/restaurant/open`,btn)}
+function filterCuisine(c,btn){loadRestaurants(`${BASE}/restaurant/cuisine/${c}`,btn)}
+function filterOpen(btn){loadRestaurants(`${BASE}/restaurant/open`,btn)}
+function searchRestaurants(){const q=document.getElementById('search-input').value;if(q)loadRestaurants(`${BASE}/restaurant/search/${q}`);else loadAll()}
+function viewMenu(id){window.location=`menu.html?restaurantId=${id}`}
+function placeOrder(id){window.location=`order.html?restaurantId=${id}`}
+function openModal(){document.getElementById('modal').classList.add('open')}
+function closeModal(){document.getElementById('modal').classList.remove('open')}
+
+async function addRestaurant(){
+  const body={name:document.getElementById('r-name').value,cuisine:document.getElementById('r-cuisine').value,address:document.getElementById('r-address').value,phone:document.getElementById('r-phone').value};
+  const resp=document.getElementById('r-resp');
+  try{
+    const res=await fetch(`${BASE}/restaurant/add`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const d=await res.json();
+    if(res.ok){resp.textContent='✓ Restaurant added!';resp.className='resp-msg s';resp.style.display='block';setTimeout(()=>{closeModal();loadAll()},1500)}
+    else{resp.textContent=d.message||'Failed';resp.className='resp-msg e';resp.style.display='block'}
+  }catch(e){resp.textContent='Server not connected';resp.className='resp-msg e';resp.style.display='block'}
+}
+
+loadAll();
+</script>
+</body>
+</html>

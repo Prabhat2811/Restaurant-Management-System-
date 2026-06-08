@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Savor — Admin Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--cream:#FDF6EC;--dark:#1A1008;--amber:#C8762A;--amber-light:#E8A94A;--rust:#8B3A1A;--warm-gray:#8A7A6A;--font-display:'Playfair Display',serif;--font-body:'DM Sans',sans-serif}
+body{background:#F0E8DC;font-family:var(--font-body);display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+.sidebar{background:var(--dark);padding:2rem 1.5rem;display:flex;flex-direction:column;gap:0.4rem;position:sticky;top:0;height:100vh;overflow-y:auto}
+.s-logo{font-family:var(--font-display);font-size:1.5rem;font-weight:900;color:white;margin-bottom:2rem;padding-bottom:1.5rem;border-bottom:1px solid rgba(255,255,255,0.08)}
+.s-logo span{color:var(--amber)}
+.s-section{font-size:0.68rem;text-transform:uppercase;letter-spacing:0.12em;color:rgba(255,255,255,0.25);margin:1rem 0 0.5rem;padding-left:0.8rem}
+.s-item{display:flex;align-items:center;gap:0.8rem;padding:0.65rem 0.8rem;border-radius:4px;cursor:pointer;color:rgba(255,255,255,0.55);font-size:0.88rem;transition:all 0.2s;text-decoration:none}
+.s-item:hover,.s-item.active{background:rgba(200,118,42,0.15);color:white}
+.s-item.active{color:var(--amber-light)}
+.s-item-icon{font-size:1rem;width:20px;text-align:center}
+.main{padding:2.5rem;overflow-y:auto}
+.top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:2.5rem}
+.page-title{font-family:var(--font-display);font-size:1.8rem;font-weight:700}
+.page-sub{color:var(--warm-gray);font-size:0.85rem;margin-top:0.2rem}
+.top-actions{display:flex;gap:0.8rem;align-items:center}
+.btn{padding:0.55rem 1.1rem;border-radius:3px;cursor:pointer;font-family:var(--font-body);font-size:0.85rem;font-weight:500;border:none;transition:all 0.2s}
+.btn-amber{background:var(--amber);color:white}.btn-amber:hover{background:var(--rust)}
+.btn-outline{background:white;border:1.5px solid rgba(200,118,42,0.25);color:var(--amber)}.btn-outline:hover{background:var(--amber);color:white}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1.2rem;margin-bottom:2rem}
+.stat-card{background:white;border-radius:6px;padding:1.5rem;border:1px solid rgba(200,118,42,0.1)}
+.stat-card.amber{background:var(--amber);color:white}
+.stat-card.dark{background:var(--dark);color:white}
+.s-label{font-size:0.72rem;text-transform:uppercase;letter-spacing:0.1em;opacity:0.55;margin-bottom:0.5rem}
+.s-val{font-family:var(--font-display);font-size:2rem;font-weight:700}
+.s-change{font-size:0.78rem;margin-top:0.3rem;opacity:0.7}
+.s-change.up{color:#4ade80}.s-change.dn{color:#f87171}
+.stat-card.amber .s-change.up,.stat-card.dark .s-change.up{color:#86efac}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem}
+.panel{background:white;border-radius:6px;padding:1.5rem;border:1px solid rgba(200,118,42,0.1)}
+.panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem}
+.panel-title{font-family:var(--font-display);font-size:1.05rem;font-weight:700}
+.panel-action{font-size:0.78rem;color:var(--amber);cursor:pointer;text-decoration:none}
+table{width:100%;border-collapse:collapse}
+th{font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--warm-gray);padding:0.5rem 0.75rem;text-align:left;border-bottom:1px solid rgba(200,118,42,0.1)}
+td{padding:0.7rem 0.75rem;font-size:0.85rem;border-bottom:1px solid rgba(200,118,42,0.06)}
+tr:last-child td{border-bottom:none}
+.badge{display:inline-block;padding:0.2rem 0.6rem;border-radius:2px;font-size:0.72rem;font-weight:500}
+.badge-placed{background:#FEF3C7;color:#92400E}
+.badge-prep{background:#DBEAFE;color:#1E40AF}
+.badge-out{background:#F3E8FF;color:#6B21A8}
+.badge-del{background:#D1FAE5;color:#065F46}
+.badge-can{background:#FEE2E2;color:#991B1B}
+.loading-row td{text-align:center;color:var(--warm-gray);padding:2rem}
+.modal-bg{position:fixed;inset:0;background:rgba(26,16,8,0.5);z-index:200;display:none;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:var(--cream);padding:2.5rem;border-radius:6px;width:90%;max-width:450px}
+.modal-title{font-family:var(--font-display);font-size:1.3rem;margin-bottom:1.5rem}
+.fg{margin-bottom:1rem}
+.fg label{display:block;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.3rem;font-weight:500}
+.fg input,.fg select{width:100%;padding:0.65rem 0.9rem;border:1.5px solid rgba(200,118,42,0.2);border-radius:3px;font-family:var(--font-body);font-size:0.88rem;outline:none}
+.fg input:focus,.fg select:focus{border-color:var(--amber)}
+.modal-actions{display:flex;gap:0.8rem;margin-top:1.2rem}
+.resp{margin-top:0.8rem;padding:0.6rem 0.9rem;border-radius:3px;font-size:0.82rem;display:none}
+.resp.s{background:#F0FDF4;color:#166534}.resp.e{background:#FEF2F2;color:#991B1B}
+.tab-row{display:flex;gap:0;border-bottom:2px solid rgba(200,118,42,0.15);margin-bottom:1.5rem}
+.tab{padding:0.6rem 1.2rem;cursor:pointer;font-size:0.88rem;font-weight:500;color:var(--warm-gray);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.2s}
+.tab.active{color:var(--amber);border-bottom-color:var(--amber)}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="s-logo">Sav<span>or</span> <span style="font-size:0.65rem;opacity:0.4;font-family:'DM Sans',sans-serif;font-weight:400">Admin</span></div>
+  <div class="s-section">Overview</div>
+  <a class="s-item active" onclick="showSection('dashboard')">📊 <span>Dashboard</span></a>
+  <div class="s-section">Management</div>
+  <a class="s-item" onclick="showSection('orders')">📦 <span>Orders</span></a>
+  <a class="s-item" onclick="showSection('restaurants')">🍽️ <span>Restaurants</span></a>
+  <a class="s-item" onclick="showSection('menu')">📋 <span>Menu Items</span></a>
+  <a class="s-item" onclick="showSection('customers')">👥 <span>Customers</span></a>
+  <a class="s-item" onclick="showSection('agents')">🚴 <span>Delivery Agents</span></a>
+  <div class="s-section">Settings</div>
+  <a class="s-item" href="index.html">🏠 <span>Back to Site</span></a>
+</aside>
+
+<main class="main" id="main-content">
+  <!-- DASHBOARD -->
+  <div id="sec-dashboard">
+    <div class="top-bar">
+      <div><div class="page-title">Dashboard</div><div class="page-sub">Welcome back — here's what's happening today</div></div>
+      <div class="top-actions">
+        <button class="btn btn-outline" onclick="loadAllData()">↻ Refresh</button>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-card amber"><div class="s-label">Total Orders</div><div class="s-val" id="stat-orders">—</div><div class="s-change up">Loading...</div></div>
+      <div class="stat-card dark"><div class="s-label">Restaurants</div><div class="s-val" id="stat-restaurants">—</div><div class="s-change up">Loading...</div></div>
+      <div class="stat-card"><div class="s-label">Customers</div><div class="s-val" id="stat-customers">—</div><div class="s-change up" style="color:#4ade80">Loading...</div></div>
+      <div class="stat-card"><div class="s-label">Agents</div><div class="s-val" id="stat-agents">—</div><div class="s-change">Loading...</div></div>
+    </div>
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">Recent Orders</div><a class="panel-action" onclick="showSection('orders')">View all →</a></div>
+        <table><thead><tr><th>ID</th><th>Customer</th><th>Amount</th><th>Status</th></tr></thead>
+        <tbody id="dash-orders"><tr class="loading-row"><td colspan="4">Loading...</td></tr></tbody></table>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">Open Restaurants</div><a class="panel-action" onclick="showSection('restaurants')">View all →</a></div>
+        <table><thead><tr><th>Name</th><th>Cuisine</th><th>Rating</th></tr></thead>
+        <tbody id="dash-restaurants"><tr class="loading-row"><td colspan="3">Loading...</td></tr></tbody></table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ORDERS -->
+  <div id="sec-orders" style="display:none">
+    <div class="top-bar">
+      <div><div class="page-title">Orders</div><div class="page-sub">Manage all orders and update statuses</div></div>
+      <div class="top-actions">
+        <select id="order-status-filter" onchange="loadOrders()" style="padding:0.5rem 0.8rem;border:1.5px solid rgba(200,118,42,0.2);border-radius:3px;font-family:'DM Sans',sans-serif;font-size:0.85rem;outline:none">
+          <option value="">All Status</option>
+          <option>PLACED</option><option>CONFIRMED</option><option>PREPARING</option>
+          <option>READY</option><option>OUT_FOR_DELIVERY</option><option>DELIVERED</option><option>CANCELLED</option>
+        </select>
+      </div>
+    </div>
+    <div class="panel">
+      <table>
+        <thead><tr><th>Order ID</th><th>Customer</th><th>Restaurant</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="orders-table"><tr class="loading-row"><td colspan="6">Loading orders...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- RESTAURANTS -->
+  <div id="sec-restaurants" style="display:none">
+    <div class="top-bar">
+      <div><div class="page-title">Restaurants</div><div class="page-sub">Manage all restaurant listings</div></div>
+      <div class="top-actions"><button class="btn btn-amber" onclick="openModal('restaurant')">+ Add Restaurant</button></div>
+    </div>
+    <div class="panel">
+      <table>
+        <thead><tr><th>ID</th><th>Name</th><th>Cuisine</th><th>Phone</th><th>Status</th><th>Rating</th></tr></thead>
+        <tbody id="restaurants-table"><tr class="loading-row"><td colspan="6">Loading...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CUSTOMERS -->
+  <div id="sec-customers" style="display:none">
+    <div class="top-bar">
+      <div><div class="page-title">Customers</div><div class="page-sub">All registered customers</div></div>
+    </div>
+    <div class="panel">
+      <table>
+        <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Role</th></tr></thead>
+        <tbody id="customers-table"><tr class="loading-row"><td colspan="5">Loading...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- AGENTS -->
+  <div id="sec-agents" style="display:none">
+    <div class="top-bar">
+      <div><div class="page-title">Delivery Agents</div><div class="page-sub">Manage delivery fleet</div></div>
+      <div class="top-actions"><button class="btn btn-amber" onclick="openModal('agent')">+ Add Agent</button></div>
+    </div>
+    <div class="panel">
+      <table>
+        <thead><tr><th>ID</th><th>Name</th><th>Vehicle</th><th>Rating</th><th>Available</th></tr></thead>
+        <tbody id="agents-table"><tr class="loading-row"><td colspan="5">Loading...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- MENU -->
+  <div id="sec-menu" style="display:none">
+    <div class="top-bar">
+      <div><div class="page-title">Menu Items</div><div class="page-sub">View all menu items by restaurant</div></div>
+      <div class="top-actions">
+        <input id="menu-restaurant-id" placeholder="Restaurant ID" type="number" style="padding:0.5rem 0.8rem;border:1.5px solid rgba(200,118,42,0.2);border-radius:3px;font-family:'DM Sans',sans-serif;width:140px;outline:none">
+        <button class="btn btn-amber" onclick="loadMenu()">Load Menu</button>
+        <button class="btn btn-outline" onclick="openModal('menuitem')">+ Add Item</button>
+      </div>
+    </div>
+    <div class="panel">
+      <table>
+        <thead><tr><th>ID</th><th>Name</th><th>Description</th><th>Price</th><th>Available</th></tr></thead>
+        <tbody id="menu-table"><tr class="loading-row"><td colspan="5">Enter a restaurant ID and click Load Menu</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<!-- MODALS -->
+<div class="modal-bg" id="modal-bg">
+  <div class="modal" id="modal-content"></div>
+</div>
+
+<script>
+const BASE = 'http://localhost:8080';
+
+function showSection(id) {
+  document.querySelectorAll('[id^="sec-"]').forEach(s => s.style.display = 'none');
+  document.getElementById('sec-' + id).style.display = 'block';
+  document.querySelectorAll('.s-item').forEach(s => s.classList.remove('active'));
+  if (id === 'dashboard') loadDashboard();
+  if (id === 'orders') loadOrders();
+  if (id === 'restaurants') loadRestaurants();
+  if (id === 'customers') loadCustomers();
+  if (id === 'agents') loadAgents();
+}
+
+function statusBadge(s) {
+  const map = {PLACED:'badge-placed',CONFIRMED:'badge-prep',PREPARING:'badge-prep',READY:'badge-prep',OUT_FOR_DELIVERY:'badge-out',DELIVERED:'badge-del',CANCELLED:'badge-can',REJECTED:'badge-can'};
+  return `<span class="badge ${map[s]||'badge-placed'}">${s}</span>`;
+}
+
+async function loadDashboard() {
+  try {
+    const [ord, rest, cust, agents] = await Promise.allSettled([
+      fetch(`${BASE}/order/restaurant/1`).then(r=>r.json()),
+      fetch(`${BASE}/restaurant/open`).then(r=>r.json()),
+      fetch(`${BASE}/user/all`).then(r=>r.json()),
+      fetch(`${BASE}/delivery-agent/all`).then(r=>r.json())
+    ]);
+    if (ord.status==='fulfilled') {
+      const orders = ord.value.data||[];
+      document.getElementById('stat-orders').textContent = orders.length;
+      document.getElementById('dash-orders').innerHTML = orders.slice(0,5).map(o=>
+        `<tr><td>#${o.id}</td><td>${o.customer?.user?.name||'—'}</td><td>₹${o.totalAmount||0}</td><td>${statusBadge(o.status)}</td></tr>`
+      ).join('') || '<tr class="loading-row"><td colspan="4">No orders</td></tr>';
+    }
+    if (rest.status==='fulfilled') {
+      const restaurants = rest.value.data||[];
+      document.getElementById('stat-restaurants').textContent = restaurants.length;
+      document.getElementById('dash-restaurants').innerHTML = restaurants.slice(0,5).map(r=>
+        `<tr><td>${r.name}</td><td>${r.cuisine}</td><td>${r.rating||'New'}★</td></tr>`
+      ).join('') || '<tr class="loading-row"><td colspan="3">No restaurants</td></tr>';
+    }
+    if (cust.status==='fulfilled') document.getElementById('stat-customers').textContent = (cust.value.data||[]).length;
+    if (agents.status==='fulfilled') document.getElementById('stat-agents').textContent = (agents.value.data||[]).length;
+  } catch(e) { console.log('Dashboard load error', e); }
+}
+
+async function loadOrders() {
+  const tb = document.getElementById('orders-table');
+  tb.innerHTML = '<tr class="loading-row"><td colspan="6">Loading...</td></tr>';
+  try {
+    const res = await fetch(`${BASE}/order/restaurant/1`);
+    const data = await res.json();
+    const orders = data.data || [];
+    tb.innerHTML = orders.map(o => `
+      <tr>
+        <td>#${o.id}</td>
+        <td>${o.customer?.user?.name||'Customer #'+o.customer?.id}</td>
+        <td>${o.restaurant?.name||'Restaurant #'+o.restaurant?.id}</td>
+        <td>₹${o.totalAmount||0}</td>
+        <td>${statusBadge(o.status)}</td>
+        <td><select onchange="updateOrderStatus(${o.id},this.value)" style="font-size:0.78rem;padding:0.2rem 0.4rem;border:1px solid rgba(200,118,42,0.2);border-radius:2px;outline:none">
+          <option value="">Update...</option>
+          <option>CONFIRMED</option><option>PREPARING</option><option>READY</option><option>OUT_FOR_DELIVERY</option><option>DELIVERED</option><option>CANCELLED</option>
+        </select></td>
+      </tr>`).join('') || '<tr class="loading-row"><td colspan="6">No orders found</td></tr>';
+  } catch(e) { tb.innerHTML = '<tr class="loading-row"><td colspan="6">Cannot connect to server</td></tr>'; }
+}
+
+async function loadRestaurants() {
+  const tb = document.getElementById('restaurants-table');
+  tb.innerHTML = '<tr class="loading-row"><td colspan="6">Loading...</td></tr>';
+  try {
+    const res = await fetch(`${BASE}/restaurant/open`);
+    const data = await res.json();
+    const list = data.data || [];
+    tb.innerHTML = list.map(r => `
+      <tr>
+        <td>${r.id}</td><td>${r.name}</td><td>${r.cuisine}</td><td>${r.phone||'—'}</td>
+        <td><span class="badge ${r.isOpen?'badge-del':'badge-can'}">${r.isOpen?'Open':'Closed'}</span></td>
+        <td>${r.rating||'New'}★</td>
+      </tr>`).join('') || '<tr class="loading-row"><td colspan="6">No restaurants</td></tr>';
+  } catch(e) { tb.innerHTML = '<tr class="loading-row"><td colspan="6">Cannot connect to server</td></tr>'; }
+}
+
+async function loadCustomers() {
+  const tb = document.getElementById('customers-table');
+  tb.innerHTML = '<tr class="loading-row"><td colspan="5">Loading...</td></tr>';
+  try {
+    const res = await fetch(`${BASE}/user/all`);
+    const data = await res.json();
+    const list = data.data || [];
+    tb.innerHTML = list.map(u => `
+      <tr><td>${u.id}</td><td>${u.name}</td><td>${u.email}</td><td>${u.phone||'—'}</td><td>${u.role}</td></tr>
+    `).join('') || '<tr class="loading-row"><td colspan="5">No users found</td></tr>';
+  } catch(e) { tb.innerHTML = '<tr class="loading-row"><td colspan="5">Cannot connect to server</td></tr>'; }
+}
+
+async function loadAgents() {
+  const tb = document.getElementById('agents-table');
+  tb.innerHTML = '<tr class="loading-row"><td colspan="5">Loading...</td></tr>';
+  try {
+    const res = await fetch(`${BASE}/delivery-agent/available`);
+    const data = await res.json();
+    const list = data.data || [];
+    tb.innerHTML = list.map(a => `
+      <tr><td>${a.id}</td><td>${a.user?.name||'—'}</td><td>${a.vehicleNumber}</td><td>${a.rating||'New'}★</td>
+      <td><span class="badge ${a.available?'badge-del':'badge-can'}">${a.available?'Available':'Busy'}</span></td></tr>
+    `).join('') || '<tr class="loading-row"><td colspan="5">No agents found</td></tr>';
+  } catch(e) { tb.innerHTML = '<tr class="loading-row"><td colspan="5">Cannot connect to server</td></tr>'; }
+}
+
+async function loadMenu() {
+  const id = document.getElementById('menu-restaurant-id').value;
+  if (!id) return;
+  const tb = document.getElementById('menu-table');
+  tb.innerHTML = '<tr class="loading-row"><td colspan="5">Loading...</td></tr>';
+  try {
+    const res = await fetch(`${BASE}/menu/restaurant/${id}`);
+    const data = await res.json();
+    const list = data.data || [];
+    tb.innerHTML = list.map(i => `
+      <tr><td>${i.id}</td><td>${i.name}</td><td>${i.description||'—'}</td><td>₹${i.price}</td>
+      <td><span class="badge ${i.available?'badge-del':'badge-can'}">${i.available?'Yes':'No'}</span></td></tr>
+    `).join('') || '<tr class="loading-row"><td colspan="5">No items found</td></tr>';
+  } catch(e) { tb.innerHTML = '<tr class="loading-row"><td colspan="5">Cannot connect</td></tr>'; }
+}
+
+async function updateOrderStatus(orderId, status) {
+  if (!status) return;
+  try {
+    const res = await fetch(`${BASE}/order/status/${orderId}?status=${status}`, { method: 'PUT' });
+    if (res.ok) loadOrders();
+  } catch(e) {}
+}
+
+function openModal(type) {
+  const content = document.getElementById('modal-content');
+  const templates = {
+    restaurant: `
+      <div class="modal-title">Add Restaurant</div>
+      <div class="fg"><label>Name</label><input id="m-name" placeholder="Spice Garden"></div>
+      <div class="fg"><label>Cuisine</label><input id="m-cuisine" placeholder="Indian"></div>
+      <div class="fg"><label>Address</label><input id="m-address" placeholder="123 MG Road"></div>
+      <div class="fg"><label>Phone</label><input id="m-phone" placeholder="9876543210"></div>
+      <div class="modal-actions"><button class="btn btn-outline" onclick="closeModal()">Cancel</button><button class="btn btn-amber" onclick="saveRestaurant()">Save</button></div>
+      <div class="resp" id="m-resp"></div>`,
+    agent: `
+      <div class="modal-title">Add Delivery Agent</div>
+      <div class="fg"><label>User ID</label><input id="m-uid" type="number" placeholder="User ID"></div>
+      <div class="fg"><label>Vehicle Number</label><input id="m-vehicle" placeholder="KA01AB1234"></div>
+      <div class="fg"><label>Rating</label><input id="m-rating" type="number" placeholder="4.5" step="0.1" min="1" max="5"></div>
+      <div class="modal-actions"><button class="btn btn-outline" onclick="closeModal()">Cancel</button><button class="btn btn-amber" onclick="saveAgent()">Save</button></div>
+      <div class="resp" id="m-resp"></div>`,
+    menuitem: `
+      <div class="modal-title">Add Menu Item</div>
+      <div class="fg"><label>Category ID</label><input id="m-catid" type="number" placeholder="Category ID"></div>
+      <div class="fg"><label>Name</label><input id="m-iname" placeholder="Butter Chicken"></div>
+      <div class="fg"><label>Description</label><input id="m-idesc" placeholder="Creamy tomato-based curry"></div>
+      <div class="fg"><label>Price (₹)</label><input id="m-iprice" type="number" placeholder="320"></div>
+      <div class="modal-actions"><button class="btn btn-outline" onclick="closeModal()">Cancel</button><button class="btn btn-amber" onclick="saveMenuItem()">Save</button></div>
+      <div class="resp" id="m-resp"></div>`
+  };
+  content.innerHTML = templates[type] || '';
+  document.getElementById('modal-bg').classList.add('open');
+}
+
+function closeModal() { document.getElementById('modal-bg').classList.remove('open'); }
+
+function showResp(msg, type) {
+  const el = document.getElementById('m-resp');
+  if (!el) return;
+  el.textContent = msg; el.className = 'resp ' + type; el.style.display = 'block';
+}
+
+async function saveRestaurant() {
+  const body = { name: document.getElementById('m-name').value, cuisine: document.getElementById('m-cuisine').value, address: document.getElementById('m-address').value, phone: document.getElementById('m-phone').value };
+  try {
+    const res = await fetch(`${BASE}/restaurant/add`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    const data = await res.json();
+    if (res.ok) { showResp('✓ Restaurant added!', 's'); setTimeout(() => { closeModal(); loadRestaurants(); }, 1200); }
+    else showResp(data.message || 'Failed', 'e');
+  } catch(e) { showResp('Server not connected', 'e'); }
+}
+
+async function saveMenuItem() {
+  const body = { categoryId: parseInt(document.getElementById('m-catid').value), name: document.getElementById('m-iname').value, description: document.getElementById('m-idesc').value, price: parseFloat(document.getElementById('m-iprice').value) };
+  try {
+    const res = await fetch(`${BASE}/menu/add`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    const data = await res.json();
+    if (res.ok) { showResp('✓ Item added!', 's'); setTimeout(() => { closeModal(); loadMenu(); }, 1200); }
+    else showResp(data.message || 'Failed', 'e');
+  } catch(e) { showResp('Server not connected', 'e'); }
+}
+
+function loadAllData() { loadDashboard(); }
+loadDashboard();
+</script>
+</body>
+</html>
