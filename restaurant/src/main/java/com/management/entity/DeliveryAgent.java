@@ -27,7 +27,8 @@ public class DeliveryAgent {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @Column(unique = true) private String vehicleNumber;
+    @Column(unique = true) 
+    private String vehicleNumber;
     private Boolean available;
     private Double rating;
 

@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,6 +20,7 @@ import com.management.dto.RestaurantDto;
 import com.management.entity.Restaurant;
 import com.management.service.RestaurantService;
 
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/restaurant")
 public class RestaurantController {
@@ -37,16 +39,30 @@ public class RestaurantController {
 
     @GetMapping("/open")
     public ResponseEntity<ResponseStructure<List<Restaurant>>> getOpen() {
-        return ResponseEntity.status(HttpStatus.FOUND).body(restaurantService.getAllOpen());
+        return ResponseEntity.status(HttpStatus.OK).body(restaurantService.getAllOpen());
     }
 
     @GetMapping("/cuisine/{cuisine}")
     public ResponseEntity<ResponseStructure<List<Restaurant>>> getByCuisine(@PathVariable String cuisine) {
-        return ResponseEntity.status(HttpStatus.FOUND).body(restaurantService.getByCuisine(cuisine));
+        return ResponseEntity.status(HttpStatus.OK).body(restaurantService.getByCuisine(cuisine));
     }
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<ResponseStructure<String>> delete(@PathVariable Integer id) {
         return ResponseEntity.ok(restaurantService.deleteRestaurant(id));
+    }
+    
+    @GetMapping("/all")
+    public ResponseEntity<ResponseStructure<List<Restaurant>>> getAll() {
+        return ResponseEntity.ok(restaurantService.getAllRestaurants());
+    }
+
+    @GetMapping("/search/{name}")
+    public ResponseEntity<ResponseStructure<List<Restaurant>>> searchByName(
+            @PathVariable String name) {
+
+        return ResponseEntity.ok(
+                restaurantService.searchByName(name)
+        );
     }
 }

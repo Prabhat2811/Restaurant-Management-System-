@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Savor — My Orders</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+.page-header { background: var(--dark); padding: 3.5rem; }
+.page-header h1 { font-family: var(--font-display); font-size: 2.5rem; color: white; margin-bottom: 0.3rem; }
+.page-header p { color: rgba(253,246,236,0.5); }
+.main { max-width: 900px; margin: 2.5rem auto; padding: 0 2rem; }
+.search-row { display: flex; gap: 0.8rem; margin-bottom: 2rem; }
+.search-row input { flex: 1; padding: 0.7rem 1rem; border: 1.5px solid var(--border); border-radius: 3px; font-family: var(--font-body); font-size: 0.9rem; outline: none; }
+.search-row input:focus { border-color: var(--amber); }
+.order-card { background: white; border-radius: 6px; border: 1px solid rgba(200,118,42,0.1); margin-bottom: 1.2rem; overflow: hidden; }
+.order-card-header { padding: 1.1rem 1.3rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(200,118,42,0.08); cursor: pointer; }
+.oc-left {}
+.oc-id { font-family: var(--font-display); font-size: 1rem; font-weight: 700; margin-bottom: 0.2rem; }
+.oc-meta { font-size: 0.8rem; color: var(--warm-gray); }
+.oc-right { display: flex; align-items: center; gap: 1rem; }
+.oc-amount { font-weight: 600; font-size: 0.95rem; color: var(--amber); }
+.order-card-body { padding: 1.2rem 1.3rem; display: none; }
+.order-card.open .order-card-body { display: block; }
+.order-card.open .oc-arrow { transform: rotate(180deg); }
+.oc-arrow { transition: transform 0.3s; color: var(--warm-gray); }
+.items-list { margin-bottom: 1.2rem; }
+.item-row { display: flex; justify-content: space-between; padding: 0.4rem 0; border-bottom: 1px solid rgba(200,118,42,0.06); font-size: 0.85rem; }
+.item-row:last-child { border-bottom: none; }
+.order-status-bar { background: #F5EDE0; border-radius: 4px; padding: 1rem; }
+.status-steps { display: flex; gap: 0; justify-content: space-between; position: relative; }
+.status-steps::before { content: ''; position: absolute; top: 12px; left: 0; right: 0; height: 2px; background: rgba(200,118,42,0.2); z-index: 0; }
+.status-step { text-align: center; flex: 1; position: relative; z-index: 1; }
+.ss-dot { width: 24px; height: 24px; border-radius: 50%; background: rgba(200,118,42,0.2); margin: 0 auto 0.4rem; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; }
+.ss-dot.done { background: var(--amber); color: white; }
+.ss-dot.current { background: var(--dark); color: var(--amber-light); border: 2px solid var(--amber); }
+.ss-label { font-size: 0.68rem; color: var(--warm-gray); }
+.ss-label.done { color: var(--amber); font-weight: 500; }
+.update-row { display: flex; gap: 0.8rem; margin-top: 1rem; align-items: center; }
+.update-row select { flex: 1; padding: 0.5rem 0.7rem; border: 1.5px solid var(--border); border-radius: 3px; font-family: var(--font-body); font-size: 0.85rem; outline: none; }
+.update-row select:focus { border-color: var(--amber); }
+</style>
+</head>
+<body>
+<div id="nav-placeholder"></div>
+
+<div class="page-header">
+  <h1>My Orders</h1>
+  <p>Track and manage your order history</p>
+</div>
+
+<div class="main">
+  <div class="search-row">
+    <input type="number" id="cid-input" placeholder="Enter your Customer ID to view orders">
+    <button class="btn btn-primary" onclick="loadOrders()">Load Orders</button>
+  </div>
+
+  <div id="orders-list">
+    <div class="empty-state">
+      <div class="empty-icon">📦</div>
+      <div class="empty-title">Enter your Customer ID above</div>
+      <p>Your order history will appear here</p>
+    </div>
+  </div>
+</div>
+
+<div id="footer-placeholder"></div>
+
+<script src="shared.js"></script>
+<script>
+document.getElementById('nav-placeholder').innerHTML = getNav('');
+document.getElementById('footer-placeholder').innerHTML = getFooter();
+renderNavUser();
+
+const user = getUser();
+if (user) {
+  document.getElementById('cid-input').value = user.id || '';
+  if (user.id) loadOrders();
+}
+
+const statusOrder = ['PLACED','CONFIRMED','PREPARING','READY','OUT_FOR_DELIVERY','DELIVERED'];
+const statusEmoji = { PLACED:'📝', CONFIRMED:'✅', PREPARING:'👨‍🍳', READY:'✔️', OUT_FOR_DELIVERY:'🚴', DELIVERED:'🎉', CANCELLED:'❌', REJECTED:'❌' };
+
+function statusBadgeClass(s) {
+  const m = { PLACED:'badge-yellow', CONFIRMED:'badge-blue', PREPARING:'badge-blue', READY:'badge-purple', OUT_FOR_DELIVERY:'badge-purple', DELIVERED:'badge-green', CANCELLED:'badge-red', REJECTED:'badge-red' };
+  return m[s] || 'badge-amber';
+}
+
+function renderStatusBar(currentStatus) {
+  const steps = ['PLACED','CONFIRMED','PREPARING','READY','OUT_FOR_DELIVERY','DELIVERED'];
+  const labels = ['Placed','Confirmed','Preparing','Ready','On the Way','Delivered'];
+  const idx = steps.indexOf(currentStatus);
+  if (currentStatus === 'CANCELLED' || currentStatus === 'REJECTED') {
+    return `<div style="text-align:center;color:#ef4444;font-size:0.88rem;padding:0.5rem">Order ${currentStatus.toLowerCase()}</div>`;
+  }
+  return `<div class="status-steps">
+    ${steps.map((s, i) => `
+      <div class="status-step">
+        <div class="ss-dot ${i < idx ? 'done' : i === idx ? 'current' : ''}">${i < idx ? '✓' : i+1}</div>
+        <div class="ss-label ${i <= idx ? 'done' : ''}">${labels[i]}</div>
+      </div>`).join('')}
+  </div>`;
+}
+
+async function loadOrders() {
+  const cid = document.getElementById('cid-input').value.trim();
+  if (!cid) { showToast('Please enter a Customer ID', 'error'); return; }
+
+  const list = document.getElementById('orders-list');
+  list.innerHTML = '<div class="loading-state"><div class="spinner"></div><br><br>Loading orders...</div>';
+
+  try {
+    const { ok, data } = await api('GET', '/order/customer/' + cid);
+    if (!ok) {
+      list.innerHTML = `<div class="empty-state"><div class="empty-icon">📦</div><div class="empty-title">${data.message || 'No orders found'}</div><a href="restaurants.html" class="btn btn-primary btn-sm" style="margin-top:1rem">Browse Restaurants</a></div>`;
+      return;
+    }
+    const orders = (data.data || []).reverse();
+    if (!orders.length) {
+      list.innerHTML = `<div class="empty-state"><div class="empty-icon">📦</div><div class="empty-title">No orders yet</div><p>Place your first order!</p><br><a href="restaurants.html" class="btn btn-primary btn-sm">Browse Restaurants</a></div>`;
+      return;
+    }
+    list.innerHTML = orders.map(order => `
+      <div class="order-card" id="oc-${order.id}">
+        <div class="order-card-header" onclick="toggleOrder(${order.id})">
+          <div class="oc-left">
+            <div class="oc-id">Order #${order.id} <span class="badge ${statusBadgeClass(order.status)}" style="font-size:0.7rem;margin-left:0.4rem">${statusEmoji[order.status]||''} ${order.status}</span></div>
+            <div class="oc-meta">${order.restaurant?.name || 'Restaurant'} · ${order.orderedAt ? new Date(order.orderedAt).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—'}</div>
+          </div>
+          <div class="oc-right">
+            <span class="oc-amount">₹${order.totalAmount || 0}</span>
+            <span class="oc-arrow">▾</span>
+          </div>
+        </div>
+        <div class="order-card-body">
+          <div class="order-status-bar">${renderStatusBar(order.status)}</div>
+          <br>
+          <div style="font-size:0.82rem;font-weight:500;text-transform:uppercase;letter-spacing:0.06em;color:var(--warm-gray);margin-bottom:0.5rem">Items</div>
+          <div class="items-list">
+            ${(order.orderItems || []).map(i => `
+              <div class="item-row">
+                <span>${i.menuItem?.name || 'Item'} × ${i.quantity}</span>
+                <span style="color:var(--amber);font-weight:500">₹${i.price}</span>
+              </div>`).join('') || '<div style="color:var(--warm-gray);font-size:0.85rem">No item details</div>'}
+          </div>
+          <div style="display:flex;gap:2rem;font-size:0.82rem;color:var(--warm-gray)">
+            <span>Payment: <strong>${order.payment?.paymentMethod || '—'}</strong></span>
+            <span>Status: <strong>${order.payment?.paymentStatus || '—'}</strong></span>
+            ${order.deliveryAgent ? `<span>Agent: <strong>${order.deliveryAgent?.user?.name || 'Agent #'+order.deliveryAgent?.id}</strong></span>` : ''}
+          </div>
+          ${user && (user.role === 'RESTAURANT_ADMIN' || user.role === 'ADMIN') ? `
+          <div class="update-row">
+            <select id="status-sel-${order.id}">
+              <option value="">Update status...</option>
+              ${['CONFIRMED','PREPARING','READY','OUT_FOR_DELIVERY','DELIVERED','CANCELLED'].map(s => `<option value="${s}">${s}</option>`).join('')}
+            </select>
+            <button class="btn btn-primary btn-sm" onclick="updateStatus(${order.id})">Update</button>
+          </div>` : ''}
+        </div>
+      </div>`).join('');
+  } catch {
+    list.innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Cannot connect to server</div></div>';
+  }
+}
+
+function toggleOrder(id) {
+  document.getElementById('oc-' + id).classList.toggle('open');
+}
+
+async function updateStatus(orderId) {
+  const status = document.getElementById('status-sel-' + orderId).value;
+  if (!status) { showToast('Select a status first', 'warning'); return; }
+  try {
+    const { ok, data } = await api('PUT', `/order/status/${orderId}?status=${status}`);
+    if (ok) { showToast('✓ Status updated to ' + status, 'success'); loadOrders(); }
+    else showToast(data.message || 'Update failed', 'error');
+  } catch { showToast('Server error', 'error'); }
+}
+</script>
+</body>
+</html>

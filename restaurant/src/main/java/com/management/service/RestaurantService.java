@@ -50,18 +50,21 @@ public class RestaurantService {
         List<Restaurant> list = restaurantRepository.findByIsOpenTrue();
         if (list.isEmpty()) throw new ResourceNotFoundException("No Open Restaurants Found");
         return ResponseStructure.<List<Restaurant>>builder()
-                .statusCode(HttpStatus.FOUND.value())
+                .statusCode(HttpStatus.OK.value())
                 .message(list.size() + " Restaurant(s) Found")
                 .data(list).build();
     }
 
     public ResponseStructure<List<Restaurant>> getByCuisine(String cuisine) {
-        List<Restaurant> list = restaurantRepository.findByCuisineIgnoreCase(cuisine);
-        if (list.isEmpty()) throw new ResourceNotFoundException("No Restaurants Found for cuisine: " + cuisine);
+
+        List<Restaurant> list =
+                restaurantRepository.findByCuisineContainingIgnoreCase(cuisine);
+
         return ResponseStructure.<List<Restaurant>>builder()
-                .statusCode(HttpStatus.FOUND.value())
+                .statusCode(HttpStatus.OK.value())
                 .message(list.size() + " Restaurant(s) Found")
-                .data(list).build();
+                .data(list)
+                .build();
     }
 
     public ResponseStructure<String> deleteRestaurant(Integer id) {
@@ -72,5 +75,31 @@ public class RestaurantService {
                 .statusCode(HttpStatus.OK.value())
                 .message("Restaurant Deleted Successfully")
                 .data("Deleted: " + r.getName()).build();
+    }
+    
+    public ResponseStructure<List<Restaurant>> getAllRestaurants() {
+
+        List<Restaurant> list = restaurantRepository.findAll();
+
+        return ResponseStructure.<List<Restaurant>>builder()
+                .statusCode(HttpStatus.OK.value())
+                .message(list.size() + " Restaurant(s) Found")
+                .data(list)
+                .build();
+    }
+    
+    public ResponseStructure<List<Restaurant>> searchByName(String keyword) {
+
+        List<Restaurant> list =
+                restaurantRepository
+                .findByNameContainingIgnoreCaseOrCuisineContainingIgnoreCase(
+                        keyword,
+                        keyword);
+
+        return ResponseStructure.<List<Restaurant>>builder()
+                .statusCode(HttpStatus.OK.value())
+                .message(list.size() + " Restaurant(s) Found")
+                .data(list)
+                .build();
     }
 }

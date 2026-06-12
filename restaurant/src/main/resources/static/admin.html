@@ -5,393 +5,603 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Savor — Admin Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-:root{--cream:#FDF6EC;--dark:#1A1008;--amber:#C8762A;--amber-light:#E8A94A;--rust:#8B3A1A;--warm-gray:#8A7A6A;--font-display:'Playfair Display',serif;--font-body:'DM Sans',sans-serif}
-body{background:#F0E8DC;font-family:var(--font-body);display:grid;grid-template-columns:240px 1fr;min-height:100vh}
-.sidebar{background:var(--dark);padding:2rem 1.5rem;display:flex;flex-direction:column;gap:0.4rem;position:sticky;top:0;height:100vh;overflow-y:auto}
-.s-logo{font-family:var(--font-display);font-size:1.5rem;font-weight:900;color:white;margin-bottom:2rem;padding-bottom:1.5rem;border-bottom:1px solid rgba(255,255,255,0.08)}
-.s-logo span{color:var(--amber)}
-.s-section{font-size:0.68rem;text-transform:uppercase;letter-spacing:0.12em;color:rgba(255,255,255,0.25);margin:1rem 0 0.5rem;padding-left:0.8rem}
-.s-item{display:flex;align-items:center;gap:0.8rem;padding:0.65rem 0.8rem;border-radius:4px;cursor:pointer;color:rgba(255,255,255,0.55);font-size:0.88rem;transition:all 0.2s;text-decoration:none}
-.s-item:hover,.s-item.active{background:rgba(200,118,42,0.15);color:white}
-.s-item.active{color:var(--amber-light)}
-.s-item-icon{font-size:1rem;width:20px;text-align:center}
-.main{padding:2.5rem;overflow-y:auto}
-.top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:2.5rem}
-.page-title{font-family:var(--font-display);font-size:1.8rem;font-weight:700}
-.page-sub{color:var(--warm-gray);font-size:0.85rem;margin-top:0.2rem}
-.top-actions{display:flex;gap:0.8rem;align-items:center}
-.btn{padding:0.55rem 1.1rem;border-radius:3px;cursor:pointer;font-family:var(--font-body);font-size:0.85rem;font-weight:500;border:none;transition:all 0.2s}
-.btn-amber{background:var(--amber);color:white}.btn-amber:hover{background:var(--rust)}
-.btn-outline{background:white;border:1.5px solid rgba(200,118,42,0.25);color:var(--amber)}.btn-outline:hover{background:var(--amber);color:white}
-.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1.2rem;margin-bottom:2rem}
-.stat-card{background:white;border-radius:6px;padding:1.5rem;border:1px solid rgba(200,118,42,0.1)}
-.stat-card.amber{background:var(--amber);color:white}
-.stat-card.dark{background:var(--dark);color:white}
-.s-label{font-size:0.72rem;text-transform:uppercase;letter-spacing:0.1em;opacity:0.55;margin-bottom:0.5rem}
-.s-val{font-family:var(--font-display);font-size:2rem;font-weight:700}
-.s-change{font-size:0.78rem;margin-top:0.3rem;opacity:0.7}
-.s-change.up{color:#4ade80}.s-change.dn{color:#f87171}
-.stat-card.amber .s-change.up,.stat-card.dark .s-change.up{color:#86efac}
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem}
-.panel{background:white;border-radius:6px;padding:1.5rem;border:1px solid rgba(200,118,42,0.1)}
-.panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem}
-.panel-title{font-family:var(--font-display);font-size:1.05rem;font-weight:700}
-.panel-action{font-size:0.78rem;color:var(--amber);cursor:pointer;text-decoration:none}
-table{width:100%;border-collapse:collapse}
-th{font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--warm-gray);padding:0.5rem 0.75rem;text-align:left;border-bottom:1px solid rgba(200,118,42,0.1)}
-td{padding:0.7rem 0.75rem;font-size:0.85rem;border-bottom:1px solid rgba(200,118,42,0.06)}
-tr:last-child td{border-bottom:none}
-.badge{display:inline-block;padding:0.2rem 0.6rem;border-radius:2px;font-size:0.72rem;font-weight:500}
-.badge-placed{background:#FEF3C7;color:#92400E}
-.badge-prep{background:#DBEAFE;color:#1E40AF}
-.badge-out{background:#F3E8FF;color:#6B21A8}
-.badge-del{background:#D1FAE5;color:#065F46}
-.badge-can{background:#FEE2E2;color:#991B1B}
-.loading-row td{text-align:center;color:var(--warm-gray);padding:2rem}
-.modal-bg{position:fixed;inset:0;background:rgba(26,16,8,0.5);z-index:200;display:none;align-items:center;justify-content:center}
-.modal-bg.open{display:flex}
-.modal{background:var(--cream);padding:2.5rem;border-radius:6px;width:90%;max-width:450px}
-.modal-title{font-family:var(--font-display);font-size:1.3rem;margin-bottom:1.5rem}
-.fg{margin-bottom:1rem}
-.fg label{display:block;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.3rem;font-weight:500}
-.fg input,.fg select{width:100%;padding:0.65rem 0.9rem;border:1.5px solid rgba(200,118,42,0.2);border-radius:3px;font-family:var(--font-body);font-size:0.88rem;outline:none}
-.fg input:focus,.fg select:focus{border-color:var(--amber)}
-.modal-actions{display:flex;gap:0.8rem;margin-top:1.2rem}
-.resp{margin-top:0.8rem;padding:0.6rem 0.9rem;border-radius:3px;font-size:0.82rem;display:none}
-.resp.s{background:#F0FDF4;color:#166534}.resp.e{background:#FEF2F2;color:#991B1B}
-.tab-row{display:flex;gap:0;border-bottom:2px solid rgba(200,118,42,0.15);margin-bottom:1.5rem}
-.tab{padding:0.6rem 1.2rem;cursor:pointer;font-size:0.88rem;font-weight:500;color:var(--warm-gray);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.2s}
-.tab.active{color:var(--amber);border-bottom-color:var(--amber)}
+body { display: grid; grid-template-columns: 230px 1fr; min-height: 100vh; background: #EDE5D8; }
+.sidebar { background: var(--dark); padding: 1.8rem 1.3rem; display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+.s-logo { font-family: var(--font-display); font-size: 1.4rem; font-weight: 900; color: white; padding-bottom: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.07); margin-bottom: 1.2rem; }
+.s-logo span { color: var(--amber); }
+.s-logo sub { font-size: 0.6rem; opacity: 0.35; font-family: var(--font-body); font-weight: 400; }
+.s-section { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(255,255,255,0.22); margin: 1rem 0 0.4rem 0.6rem; }
+.s-link { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0.8rem; border-radius: 4px; color: rgba(255,255,255,0.5); font-size: 0.86rem; cursor: pointer; transition: all 0.2s; text-decoration: none; margin-bottom: 0.1rem; }
+.s-link:hover, .s-link.active { background: rgba(200,118,42,0.15); color: white; }
+.s-link.active { color: var(--amber-light); }
+.s-icon { width: 18px; text-align: center; font-size: 0.95rem; }
+.s-foot { margin-top: auto; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.07); }
+.s-user { display: flex; align-items: center; gap: 0.7rem; }
+.s-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--amber); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; color: white; flex-shrink: 0; }
+.s-uname { font-size: 0.82rem; color: rgba(255,255,255,0.7); }
+.s-urole { font-size: 0.7rem; color: rgba(255,255,255,0.3); }
+.main { padding: 2rem 2.5rem; overflow-y: auto; }
+.top-bar { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; }
+.page-title { font-family: var(--font-display); font-size: 1.7rem; font-weight: 700; }
+.page-sub { color: var(--warm-gray); font-size: 0.83rem; margin-top: 0.2rem; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.1rem; margin-bottom: 2rem; }
+.stat { background: white; border-radius: 6px; padding: 1.4rem; border: 1px solid rgba(200,118,42,0.08); }
+.stat.amber { background: var(--amber); }
+.stat.dark { background: var(--dark); }
+.stat-lbl { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.55; margin-bottom: 0.5rem; }
+.stat-val { font-family: var(--font-display); font-size: 2rem; font-weight: 700; }
+.stat.amber .stat-lbl, .stat.dark .stat-lbl { color: rgba(255,255,255,0.5); }
+.stat.amber .stat-val, .stat.dark .stat-val { color: white; }
+.stat-sub { font-size: 0.76rem; margin-top: 0.3rem; color: var(--warm-gray); }
+.stat.amber .stat-sub, .stat.dark .stat-sub { color: rgba(255,255,255,0.45); }
+.panel { background: white; border-radius: 6px; border: 1px solid rgba(200,118,42,0.1); padding: 1.4rem; margin-bottom: 1.5rem; }
+.panel-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; }
+.panel-ttl { font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+.sec { display: none; } .sec.active { display: block; }
+.toolbar { display: flex; gap: 0.7rem; margin-bottom: 1.3rem; flex-wrap: wrap; align-items: center; }
+.toolbar input, .toolbar select { padding: 0.5rem 0.8rem; border: 1.5px solid var(--border); border-radius: 3px; font-family: var(--font-body); font-size: 0.85rem; outline: none; }
+.toolbar input:focus, .toolbar select:focus { border-color: var(--amber); }
 </style>
 </head>
 <body>
 
 <aside class="sidebar">
-  <div class="s-logo">Sav<span>or</span> <span style="font-size:0.65rem;opacity:0.4;font-family:'DM Sans',sans-serif;font-weight:400">Admin</span></div>
-  <div class="s-section">Overview</div>
-  <a class="s-item active" onclick="showSection('dashboard')">📊 <span>Dashboard</span></a>
-  <div class="s-section">Management</div>
-  <a class="s-item" onclick="showSection('orders')">📦 <span>Orders</span></a>
-  <a class="s-item" onclick="showSection('restaurants')">🍽️ <span>Restaurants</span></a>
-  <a class="s-item" onclick="showSection('menu')">📋 <span>Menu Items</span></a>
-  <a class="s-item" onclick="showSection('customers')">👥 <span>Customers</span></a>
-  <a class="s-item" onclick="showSection('agents')">🚴 <span>Delivery Agents</span></a>
-  <div class="s-section">Settings</div>
-  <a class="s-item" href="index.html">🏠 <span>Back to Site</span></a>
-</aside>
+  <div class="s-logo">Sav<span>or</span><br><sub>Admin Panel</sub></div>
 
-<main class="main" id="main-content">
-  <!-- DASHBOARD -->
-  <div id="sec-dashboard">
-    <div class="top-bar">
-      <div><div class="page-title">Dashboard</div><div class="page-sub">Welcome back — here's what's happening today</div></div>
-      <div class="top-actions">
-        <button class="btn btn-outline" onclick="loadAllData()">↻ Refresh</button>
+  <div class="s-section">Overview</div>
+  <a class="s-link active" onclick="goSec('dashboard',this)"><span class="s-icon">📊</span>Dashboard</a>
+
+  <div class="s-section">Operations</div>
+  <a class="s-link" onclick="goSec('orders',this)"><span class="s-icon">📦</span>Orders</a>
+  <a class="s-link" onclick="goSec('restaurants',this)"><span class="s-icon">🍽️</span>Restaurants</a>
+  <a class="s-link" onclick="goSec('menu',this)"><span class="s-icon">📋</span>Menu Items</a>
+  <a class="s-link" onclick="goSec('categories',this)"><span class="s-icon">🏷️</span>Categories</a>
+
+  <div class="s-section">People</div>
+  <a class="s-link" onclick="goSec('customers',this)"><span class="s-icon">👥</span>Customers</a>
+  <a class="s-link" onclick="goSec('agents',this)"><span class="s-icon">🚴</span>Delivery Agents</a>
+
+  <div class="s-foot">
+    <div class="s-user">
+      <div class="s-avatar" id="s-avatar">A</div>
+      <div>
+        <div class="s-uname" id="s-uname">Admin</div>
+        <div class="s-urole" id="s-urole">Administrator</div>
       </div>
     </div>
-    <div class="stats-row">
-      <div class="stat-card amber"><div class="s-label">Total Orders</div><div class="s-val" id="stat-orders">—</div><div class="s-change up">Loading...</div></div>
-      <div class="stat-card dark"><div class="s-label">Restaurants</div><div class="s-val" id="stat-restaurants">—</div><div class="s-change up">Loading...</div></div>
-      <div class="stat-card"><div class="s-label">Customers</div><div class="s-val" id="stat-customers">—</div><div class="s-change up" style="color:#4ade80">Loading...</div></div>
-      <div class="stat-card"><div class="s-label">Agents</div><div class="s-val" id="stat-agents">—</div><div class="s-change">Loading...</div></div>
+    <br>
+    <a href="index.html" style="color:rgba(255,255,255,0.3);font-size:0.78rem;text-decoration:none;display:block;margin-bottom:0.4rem">← Back to Site</a>
+    <a onclick="logout()" style="color:rgba(255,255,255,0.3);font-size:0.78rem;cursor:pointer;display:block">Logout</a>
+  </div>
+</aside>
+
+<main class="main">
+
+  <!-- DASHBOARD -->
+  <div class="sec active" id="sec-dashboard">
+    <div class="top-bar">
+      <div><div class="page-title">Dashboard</div><div class="page-sub" id="dash-greeting">Good morning</div></div>
+      <button class="btn btn-outline-amber btn-sm" onclick="loadDashboard()">↻ Refresh</button>
+    </div>
+    <div class="stats">
+      <div class="stat amber"><div class="stat-lbl">Open Restaurants</div><div class="stat-val" id="s-restaurants">—</div><div class="stat-sub">Currently serving</div></div>
+      <div class="stat dark"><div class="stat-lbl">Total Users</div><div class="stat-val" id="s-users">—</div><div class="stat-sub">Registered accounts</div></div>
+      <div class="stat"><div class="stat-lbl">Available Agents</div><div class="stat-val" id="s-agents">—</div><div class="stat-sub">Ready to deliver</div></div>
+      <div class="stat"><div class="stat-lbl">Recent Orders</div><div class="stat-val" id="s-orders">—</div><div class="stat-sub">Last loaded</div></div>
     </div>
     <div class="grid-2">
       <div class="panel">
-        <div class="panel-header"><div class="panel-title">Recent Orders</div><a class="panel-action" onclick="showSection('orders')">View all →</a></div>
-        <table><thead><tr><th>ID</th><th>Customer</th><th>Amount</th><th>Status</th></tr></thead>
-        <tbody id="dash-orders"><tr class="loading-row"><td colspan="4">Loading...</td></tr></tbody></table>
+        <div class="panel-hdr"><div class="panel-ttl">Recent Orders</div><a class="btn btn-outline-amber btn-sm" onclick="goSec('orders',null)">View all</a></div>
+        <table><thead><tr><th>ID</th><th>Restaurant</th><th>Amount</th><th>Status</th></tr></thead>
+        <tbody id="dash-orders-body"><tr><td colspan="4" style="text-align:center;color:var(--warm-gray);padding:1.5rem">Loading...</td></tr></tbody></table>
       </div>
       <div class="panel">
-        <div class="panel-header"><div class="panel-title">Open Restaurants</div><a class="panel-action" onclick="showSection('restaurants')">View all →</a></div>
+        <div class="panel-hdr"><div class="panel-ttl">Open Restaurants</div><a class="btn btn-outline-amber btn-sm" onclick="goSec('restaurants',null)">View all</a></div>
         <table><thead><tr><th>Name</th><th>Cuisine</th><th>Rating</th></tr></thead>
-        <tbody id="dash-restaurants"><tr class="loading-row"><td colspan="3">Loading...</td></tr></tbody></table>
+        <tbody id="dash-rest-body"><tr><td colspan="3" style="text-align:center;color:var(--warm-gray);padding:1.5rem">Loading...</td></tr></tbody></table>
       </div>
     </div>
   </div>
 
   <!-- ORDERS -->
-  <div id="sec-orders" style="display:none">
+  <div class="sec" id="sec-orders">
     <div class="top-bar">
-      <div><div class="page-title">Orders</div><div class="page-sub">Manage all orders and update statuses</div></div>
-      <div class="top-actions">
-        <select id="order-status-filter" onchange="loadOrders()" style="padding:0.5rem 0.8rem;border:1.5px solid rgba(200,118,42,0.2);border-radius:3px;font-family:'DM Sans',sans-serif;font-size:0.85rem;outline:none">
-          <option value="">All Status</option>
+      <div><div class="page-title">Orders</div><div class="page-sub">Manage and update order statuses</div></div>
+    </div>
+    <div class="panel">
+      <div class="toolbar">
+        <input type="number" id="ord-rest-id" placeholder="Restaurant ID" style="width:150px">
+        <button class="btn btn-primary btn-sm" onclick="loadOrders()">Load Orders</button>
+        <select id="ord-status-filter" onchange="filterOrders()">
+          <option value="">All Statuses</option>
           <option>PLACED</option><option>CONFIRMED</option><option>PREPARING</option>
           <option>READY</option><option>OUT_FOR_DELIVERY</option><option>DELIVERED</option><option>CANCELLED</option>
         </select>
       </div>
-    </div>
-    <div class="panel">
-      <table>
-        <thead><tr><th>Order ID</th><th>Customer</th><th>Restaurant</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead>
-        <tbody id="orders-table"><tr class="loading-row"><td colspan="6">Loading orders...</td></tr></tbody>
-      </table>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Customer</th><th>Restaurant</th><th>Items</th><th>Amount</th><th>Payment</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody id="orders-tbody"><tr><td colspan="8" style="text-align:center;color:var(--warm-gray);padding:2rem">Enter a restaurant ID to load orders</td></tr></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
   <!-- RESTAURANTS -->
-  <div id="sec-restaurants" style="display:none">
+  <div class="sec" id="sec-restaurants">
     <div class="top-bar">
       <div><div class="page-title">Restaurants</div><div class="page-sub">Manage all restaurant listings</div></div>
-      <div class="top-actions"><button class="btn btn-amber" onclick="openModal('restaurant')">+ Add Restaurant</button></div>
+      <button class="btn btn-primary btn-sm" onclick="openModal('addRestaurant')">+ Add Restaurant</button>
     </div>
     <div class="panel">
-      <table>
-        <thead><tr><th>ID</th><th>Name</th><th>Cuisine</th><th>Phone</th><th>Status</th><th>Rating</th></tr></thead>
-        <tbody id="restaurants-table"><tr class="loading-row"><td colspan="6">Loading...</td></tr></tbody>
-      </table>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Name</th><th>Cuisine</th><th>Address</th><th>Phone</th><th>Rating</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="rest-tbody"><tr><td colspan="8" style="text-align:center;color:var(--warm-gray);padding:2rem">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- MENU ITEMS -->
+  <div class="sec" id="sec-menu">
+    <div class="top-bar">
+      <div><div class="page-title">Menu Items</div><div class="page-sub">View and manage menu items by restaurant</div></div>
+      <button class="btn btn-primary btn-sm" onclick="openModal('addMenuItem')">+ Add Item</button>
+    </div>
+    <div class="panel">
+      <div class="toolbar">
+        <input type="number" id="menu-rest-id" placeholder="Restaurant ID" style="width:150px">
+        <button class="btn btn-primary btn-sm" onclick="loadMenu()">Load Menu</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Name</th><th>Description</th><th>Category</th><th>Price</th><th>Available</th><th>Actions</th></tr></thead>
+          <tbody id="menu-tbody"><tr><td colspan="7" style="text-align:center;color:var(--warm-gray);padding:2rem">Enter a restaurant ID to load menu</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- CATEGORIES -->
+  <div class="sec" id="sec-categories">
+    <div class="top-bar">
+      <div><div class="page-title">Menu Categories</div><div class="page-sub">Manage restaurant menu categories</div></div>
+      <button class="btn btn-primary btn-sm" onclick="openModal('addCategory')">+ Add Category</button>
+    </div>
+    <div class="panel">
+      <div class="toolbar">
+        <input type="number" id="cat-rest-id" placeholder="Restaurant ID" style="width:150px">
+        <button class="btn btn-primary btn-sm" onclick="loadCategories()">Load Categories</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Category Name</th><th>Restaurant</th><th>Items Count</th></tr></thead>
+          <tbody id="cat-tbody"><tr><td colspan="4" style="text-align:center;color:var(--warm-gray);padding:2rem">Enter a restaurant ID to load categories</td></tr></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
   <!-- CUSTOMERS -->
-  <div id="sec-customers" style="display:none">
+  <div class="sec" id="sec-customers">
     <div class="top-bar">
-      <div><div class="page-title">Customers</div><div class="page-sub">All registered customers</div></div>
+      <div><div class="page-title">Customers</div><div class="page-sub">All registered users</div></div>
+      <button class="btn btn-outline-amber btn-sm" onclick="loadCustomers()">↻ Refresh</button>
     </div>
     <div class="panel">
-      <table>
-        <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Role</th></tr></thead>
-        <tbody id="customers-table"><tr class="loading-row"><td colspan="5">Loading...</td></tr></tbody>
-      </table>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Joined</th></tr></thead>
+          <tbody id="cust-tbody"><tr><td colspan="6" style="text-align:center;color:var(--warm-gray);padding:2rem">Loading...</td></tr></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
   <!-- AGENTS -->
-  <div id="sec-agents" style="display:none">
+  <div class="sec" id="sec-agents">
     <div class="top-bar">
       <div><div class="page-title">Delivery Agents</div><div class="page-sub">Manage delivery fleet</div></div>
-      <div class="top-actions"><button class="btn btn-amber" onclick="openModal('agent')">+ Add Agent</button></div>
-    </div>
-    <div class="panel">
-      <table>
-        <thead><tr><th>ID</th><th>Name</th><th>Vehicle</th><th>Rating</th><th>Available</th></tr></thead>
-        <tbody id="agents-table"><tr class="loading-row"><td colspan="5">Loading...</td></tr></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- MENU -->
-  <div id="sec-menu" style="display:none">
-    <div class="top-bar">
-      <div><div class="page-title">Menu Items</div><div class="page-sub">View all menu items by restaurant</div></div>
-      <div class="top-actions">
-        <input id="menu-restaurant-id" placeholder="Restaurant ID" type="number" style="padding:0.5rem 0.8rem;border:1.5px solid rgba(200,118,42,0.2);border-radius:3px;font-family:'DM Sans',sans-serif;width:140px;outline:none">
-        <button class="btn btn-amber" onclick="loadMenu()">Load Menu</button>
-        <button class="btn btn-outline" onclick="openModal('menuitem')">+ Add Item</button>
+      <div style="display:flex;gap:0.7rem">
+        <button class="btn btn-outline-amber btn-sm" onclick="loadAgents()">↻ Refresh</button>
+        <button class="btn btn-primary btn-sm" onclick="openModal('addAgent')">+ Add Agent</button>
       </div>
     </div>
     <div class="panel">
-      <table>
-        <thead><tr><th>ID</th><th>Name</th><th>Description</th><th>Price</th><th>Available</th></tr></thead>
-        <tbody id="menu-table"><tr class="loading-row"><td colspan="5">Enter a restaurant ID and click Load Menu</td></tr></tbody>
-      </table>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Name</th><th>Phone</th><th>Vehicle</th><th>Rating</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="agent-tbody"><tr><td colspan="7" style="text-align:center;color:var(--warm-gray);padding:2rem">Loading...</td></tr></tbody>
+        </table>
+      </div>
     </div>
   </div>
+
 </main>
 
-<!-- MODALS -->
-<div class="modal-bg" id="modal-bg">
-  <div class="modal" id="modal-content"></div>
+<!-- MODAL -->
+<div class="modal-backdrop" id="modal-backdrop">
+  <div class="modal" id="modal-body"></div>
 </div>
 
+<script src="shared.js"></script>
 <script>
-const BASE = 'http://localhost:8080';
+// Auth check
+const user = getUser();
+if (!user) window.location.href = 'login.html';
 
-function showSection(id) {
-  document.querySelectorAll('[id^="sec-"]').forEach(s => s.style.display = 'none');
-  document.getElementById('sec-' + id).style.display = 'block';
-  document.querySelectorAll('.s-item').forEach(s => s.classList.remove('active'));
-  if (id === 'dashboard') loadDashboard();
-  if (id === 'orders') loadOrders();
-  if (id === 'restaurants') loadRestaurants();
-  if (id === 'customers') loadCustomers();
-  if (id === 'agents') loadAgents();
+// Set sidebar user info
+if (user) {
+  document.getElementById('s-avatar').textContent = (user.name || 'A')[0].toUpperCase();
+  document.getElementById('s-uname').textContent = user.name || 'Admin';
+  document.getElementById('s-urole').textContent = user.role || 'ADMIN';
 }
 
-function statusBadge(s) {
-  const map = {PLACED:'badge-placed',CONFIRMED:'badge-prep',PREPARING:'badge-prep',READY:'badge-prep',OUT_FOR_DELIVERY:'badge-out',DELIVERED:'badge-del',CANCELLED:'badge-can',REJECTED:'badge-can'};
-  return `<span class="badge ${map[s]||'badge-placed'}">${s}</span>`;
+// Greeting
+const hr = new Date().getHours();
+document.getElementById('dash-greeting').textContent = `Good ${hr<12?'morning':hr<17?'afternoon':'evening'}, ${user?.name?.split(' ')[0] || 'Admin'}`;
+
+// Section nav
+function goSec(id, linkEl) {
+  document.querySelectorAll('.sec').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.s-link').forEach(l => l.classList.remove('active'));
+  document.getElementById('sec-' + id).classList.add('active');
+  if (linkEl) linkEl.classList.add('active');
+  const loaders = { dashboard: loadDashboard, restaurants: loadRestaurants, customers: loadCustomers, agents: loadAgents };
+  if (loaders[id]) loaders[id]();
 }
 
+// Status badge helper
+function sb(s) {
+  const m = { PLACED:'badge-yellow', CONFIRMED:'badge-blue', PREPARING:'badge-blue', READY:'badge-purple', OUT_FOR_DELIVERY:'badge-purple', DELIVERED:'badge-green', CANCELLED:'badge-red', REJECTED:'badge-red' };
+  return `<span class="badge ${m[s]||'badge-amber'}">${s}</span>`;
+}
+
+// ---- DASHBOARD ----
 async function loadDashboard() {
-  try {
-    const [ord, rest, cust, agents] = await Promise.allSettled([
-      fetch(`${BASE}/order/restaurant/1`).then(r=>r.json()),
-      fetch(`${BASE}/restaurant/open`).then(r=>r.json()),
-      fetch(`${BASE}/user/all`).then(r=>r.json()),
-      fetch(`${BASE}/delivery-agent/all`).then(r=>r.json())
-    ]);
-    if (ord.status==='fulfilled') {
-      const orders = ord.value.data||[];
-      document.getElementById('stat-orders').textContent = orders.length;
-      document.getElementById('dash-orders').innerHTML = orders.slice(0,5).map(o=>
-        `<tr><td>#${o.id}</td><td>${o.customer?.user?.name||'—'}</td><td>₹${o.totalAmount||0}</td><td>${statusBadge(o.status)}</td></tr>`
-      ).join('') || '<tr class="loading-row"><td colspan="4">No orders</td></tr>';
-    }
-    if (rest.status==='fulfilled') {
-      const restaurants = rest.value.data||[];
-      document.getElementById('stat-restaurants').textContent = restaurants.length;
-      document.getElementById('dash-restaurants').innerHTML = restaurants.slice(0,5).map(r=>
-        `<tr><td>${r.name}</td><td>${r.cuisine}</td><td>${r.rating||'New'}★</td></tr>`
-      ).join('') || '<tr class="loading-row"><td colspan="3">No restaurants</td></tr>';
-    }
-    if (cust.status==='fulfilled') document.getElementById('stat-customers').textContent = (cust.value.data||[]).length;
-    if (agents.status==='fulfilled') document.getElementById('stat-agents').textContent = (agents.value.data||[]).length;
-  } catch(e) { console.log('Dashboard load error', e); }
+  const calls = [
+    api('GET', '/restaurant/open'),
+    api('GET', '/user/all'),
+    api('GET', '/delivery-agent/available')
+  ];
+  const [rests, users, agents] = await Promise.allSettled(calls);
+
+  if (rests.value?.ok) {
+    const list = rests.value.data.data || [];
+    document.getElementById('s-restaurants').textContent = list.length;
+    document.getElementById('dash-rest-body').innerHTML = list.slice(0,5).map(r =>
+      `<tr><td>${r.name}</td><td>${r.cuisine}</td><td>${r.rating > 0 ? r.rating + '★' : 'New'}</td></tr>`
+    ).join('') || '<tr><td colspan="3" style="text-align:center;color:var(--warm-gray)">No open restaurants</td></tr>';
+  }
+  if (users.value?.ok) document.getElementById('s-users').textContent = (users.value.data.data || []).length;
+  if (agents.value?.ok) document.getElementById('s-agents').textContent = (agents.value.data.data || []).length;
+  document.getElementById('s-orders').textContent = '—';
+  document.getElementById('dash-orders-body').innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--warm-gray)">Enter restaurant ID in Orders tab</td></tr>';
 }
 
+// ---- ORDERS ----
+let allOrders = [];
 async function loadOrders() {
-  const tb = document.getElementById('orders-table');
-  tb.innerHTML = '<tr class="loading-row"><td colspan="6">Loading...</td></tr>';
+  const rid = document.getElementById('ord-rest-id').value.trim();
+  if (!rid) { showToast('Enter a restaurant ID', 'warning'); return; }
+  const tb = document.getElementById('orders-tbody');
+  tb.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem"><div class="spinner"></div></td></tr>';
   try {
-    const res = await fetch(`${BASE}/order/restaurant/1`);
-    const data = await res.json();
-    const orders = data.data || [];
-    tb.innerHTML = orders.map(o => `
-      <tr>
-        <td>#${o.id}</td>
-        <td>${o.customer?.user?.name||'Customer #'+o.customer?.id}</td>
-        <td>${o.restaurant?.name||'Restaurant #'+o.restaurant?.id}</td>
-        <td>₹${o.totalAmount||0}</td>
-        <td>${statusBadge(o.status)}</td>
-        <td><select onchange="updateOrderStatus(${o.id},this.value)" style="font-size:0.78rem;padding:0.2rem 0.4rem;border:1px solid rgba(200,118,42,0.2);border-radius:2px;outline:none">
-          <option value="">Update...</option>
-          <option>CONFIRMED</option><option>PREPARING</option><option>READY</option><option>OUT_FOR_DELIVERY</option><option>DELIVERED</option><option>CANCELLED</option>
-        </select></td>
-      </tr>`).join('') || '<tr class="loading-row"><td colspan="6">No orders found</td></tr>';
-  } catch(e) { tb.innerHTML = '<tr class="loading-row"><td colspan="6">Cannot connect to server</td></tr>'; }
+    const { ok, data } = await api('GET', '/order/restaurant/' + rid);
+    allOrders = ok ? (data.data || []) : [];
+    document.getElementById('s-orders').textContent = allOrders.length;
+    renderOrders(allOrders);
+  } catch { tb.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#ef4444;padding:1rem">Server error</td></tr>'; }
+}
+function filterOrders() {
+  const f = document.getElementById('ord-status-filter').value;
+  renderOrders(f ? allOrders.filter(o => o.status === f) : allOrders);
+}
+function renderOrders(orders) {
+  const tb = document.getElementById('orders-tbody');
+  if (!orders.length) { tb.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--warm-gray);padding:1.5rem">No orders found</td></tr>'; return; }
+  tb.innerHTML = orders.map(o => `<tr>
+    <td>#${o.id}</td>
+    <td>${o.customer?.user?.name || 'Customer #' + o.customer?.id}</td>
+    <td>${o.restaurant?.name || '#' + o.restaurant?.id}</td>
+    <td>${(o.orderItems || []).length} items</td>
+    <td style="color:var(--amber);font-weight:600">₹${o.totalAmount || 0}</td>
+    <td><span class="badge badge-amber" style="font-size:0.7rem">${o.payment?.paymentMethod || '—'}</span></td>
+    <td>${sb(o.status)}</td>
+    <td style="display:flex;gap:0.4rem;align-items:center">
+      <select id="os-${o.id}" style="font-size:0.75rem;padding:0.25rem 0.4rem;border:1px solid var(--border);border-radius:2px;outline:none">
+        <option value="">Change...</option>
+        ${['CONFIRMED','PREPARING','READY','OUT_FOR_DELIVERY','DELIVERED','CANCELLED'].map(s=>`<option>${s}</option>`).join('')}
+      </select>
+      <button onclick="updateOrderStatus(${o.id})" class="btn btn-primary" style="padding:0.25rem 0.6rem;font-size:0.75rem">Go</button>
+      ${o.status === 'READY' ? `<button onclick="openModal('assignAgent',${o.id})" class="btn btn-dark" style="padding:0.25rem 0.6rem;font-size:0.75rem">Assign Agent</button>` : ''}
+    </td>
+  </tr>`).join('');
+}
+async function updateOrderStatus(orderId) {
+  const status = document.getElementById('os-' + orderId).value;
+  if (!status) { showToast('Select a status', 'warning'); return; }
+  const { ok, data } = await api('PUT', `/order/status/${orderId}?status=${status}`);
+  if (ok) { showToast('✓ Status updated to ' + status, 'success'); loadOrders(); }
+  else showToast(data.message || 'Failed', 'error');
 }
 
+// ---- RESTAURANTS ----
 async function loadRestaurants() {
-  const tb = document.getElementById('restaurants-table');
-  tb.innerHTML = '<tr class="loading-row"><td colspan="6">Loading...</td></tr>';
+  const tb = document.getElementById('rest-tbody');
+  tb.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem"><div class="spinner"></div></td></tr>';
   try {
-    const res = await fetch(`${BASE}/restaurant/open`);
-    const data = await res.json();
-    const list = data.data || [];
-    tb.innerHTML = list.map(r => `
-      <tr>
-        <td>${r.id}</td><td>${r.name}</td><td>${r.cuisine}</td><td>${r.phone||'—'}</td>
-        <td><span class="badge ${r.isOpen?'badge-del':'badge-can'}">${r.isOpen?'Open':'Closed'}</span></td>
-        <td>${r.rating||'New'}★</td>
-      </tr>`).join('') || '<tr class="loading-row"><td colspan="6">No restaurants</td></tr>';
-  } catch(e) { tb.innerHTML = '<tr class="loading-row"><td colspan="6">Cannot connect to server</td></tr>'; }
+    const { ok, data } = await api('GET', '/restaurant/open');
+    const list = ok ? (data.data || []) : [];
+    tb.innerHTML = list.map(r => `<tr>
+      <td>${r.id}</td><td style="font-weight:500">${r.name}</td><td>${r.cuisine}</td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.address || '—'}</td>
+      <td>${r.phone || '—'}</td>
+      <td>${r.rating > 0 ? r.rating + ' ★' : 'New'}</td>
+      <td><span class="badge ${r.isOpen ? 'badge-green' : 'badge-red'}">${r.isOpen ? 'Open' : 'Closed'}</span></td>
+      <td><button onclick="openModal('editRestaurant',${r.id},'${r.name.replace(/'/g,"\\'")}','${r.cuisine}','${(r.address||'').replace(/'/g,"\\'")}','${r.phone||''}',${r.isOpen})" class="btn btn-outline-amber" style="padding:0.3rem 0.7rem;font-size:0.75rem">Edit</button></td>
+    </tr>`).join('') || '<tr><td colspan="8" style="text-align:center;color:var(--warm-gray);padding:1.5rem">No restaurants found</td></tr>';
+  } catch { tb.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#ef4444;padding:1rem">Server error</td></tr>'; }
 }
 
-async function loadCustomers() {
-  const tb = document.getElementById('customers-table');
-  tb.innerHTML = '<tr class="loading-row"><td colspan="5">Loading...</td></tr>';
-  try {
-    const res = await fetch(`${BASE}/user/all`);
-    const data = await res.json();
-    const list = data.data || [];
-    tb.innerHTML = list.map(u => `
-      <tr><td>${u.id}</td><td>${u.name}</td><td>${u.email}</td><td>${u.phone||'—'}</td><td>${u.role}</td></tr>
-    `).join('') || '<tr class="loading-row"><td colspan="5">No users found</td></tr>';
-  } catch(e) { tb.innerHTML = '<tr class="loading-row"><td colspan="5">Cannot connect to server</td></tr>'; }
-}
-
-async function loadAgents() {
-  const tb = document.getElementById('agents-table');
-  tb.innerHTML = '<tr class="loading-row"><td colspan="5">Loading...</td></tr>';
-  try {
-    const res = await fetch(`${BASE}/delivery-agent/available`);
-    const data = await res.json();
-    const list = data.data || [];
-    tb.innerHTML = list.map(a => `
-      <tr><td>${a.id}</td><td>${a.user?.name||'—'}</td><td>${a.vehicleNumber}</td><td>${a.rating||'New'}★</td>
-      <td><span class="badge ${a.available?'badge-del':'badge-can'}">${a.available?'Available':'Busy'}</span></td></tr>
-    `).join('') || '<tr class="loading-row"><td colspan="5">No agents found</td></tr>';
-  } catch(e) { tb.innerHTML = '<tr class="loading-row"><td colspan="5">Cannot connect to server</td></tr>'; }
-}
-
+// ---- MENU ----
 async function loadMenu() {
-  const id = document.getElementById('menu-restaurant-id').value;
-  if (!id) return;
-  const tb = document.getElementById('menu-table');
-  tb.innerHTML = '<tr class="loading-row"><td colspan="5">Loading...</td></tr>';
+  const rid = document.getElementById('menu-rest-id').value.trim();
+  if (!rid) { showToast('Enter restaurant ID', 'warning'); return; }
+  const tb = document.getElementById('menu-tbody');
+  tb.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem"><div class="spinner"></div></td></tr>';
   try {
-    const res = await fetch(`${BASE}/menu/restaurant/${id}`);
-    const data = await res.json();
-    const list = data.data || [];
-    tb.innerHTML = list.map(i => `
-      <tr><td>${i.id}</td><td>${i.name}</td><td>${i.description||'—'}</td><td>₹${i.price}</td>
-      <td><span class="badge ${i.available?'badge-del':'badge-can'}">${i.available?'Yes':'No'}</span></td></tr>
-    `).join('') || '<tr class="loading-row"><td colspan="5">No items found</td></tr>';
-  } catch(e) { tb.innerHTML = '<tr class="loading-row"><td colspan="5">Cannot connect</td></tr>'; }
+    const { ok, data } = await api('GET', '/menu/restaurant/' + rid);
+    const list = ok ? (data.data || []) : [];
+    tb.innerHTML = list.map(i => `<tr>
+      <td>${i.id}</td><td style="font-weight:500">${i.name}</td>
+      <td style="color:var(--warm-gray);font-size:0.8rem">${i.description || '—'}</td>
+      <td>${i.category?.name || '—'}</td>
+      <td style="color:var(--amber);font-weight:600">₹${i.price}</td>
+      <td><span class="badge ${i.available ? 'badge-green' : 'badge-red'}">${i.available ? 'Yes' : 'No'}</span></td>
+      <td>
+        <button onclick="openModal('editMenuItem',${i.id},'${i.name.replace(/'/g,"\\'")}','${(i.description||'').replace(/'/g,"\\'")}',${i.price},${i.available})" class="btn btn-outline-amber" style="padding:0.3rem 0.7rem;font-size:0.75rem">Edit</button>
+        <button onclick="deleteMenuItem(${i.id})" class="btn btn-dark" style="padding:0.3rem 0.7rem;font-size:0.75rem;margin-left:0.3rem">Del</button>
+      </td>
+    </tr>`).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--warm-gray);padding:1.5rem">No menu items found</td></tr>';
+  } catch { tb.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#ef4444;padding:1rem">Server error</td></tr>'; }
 }
 
-async function updateOrderStatus(orderId, status) {
-  if (!status) return;
+// ---- CATEGORIES ----
+async function loadCategories() {
+  const rid = document.getElementById('cat-rest-id').value.trim();
+  if (!rid) { showToast('Enter restaurant ID', 'warning'); return; }
+  const tb = document.getElementById('cat-tbody');
   try {
-    const res = await fetch(`${BASE}/order/status/${orderId}?status=${status}`, { method: 'PUT' });
-    if (res.ok) loadOrders();
-  } catch(e) {}
+    const { ok, data } = await api('GET', '/category/restaurant/' + rid);
+    const list = ok ? (data.data || []) : [];
+    tb.innerHTML = list.map(c => `<tr>
+      <td>${c.id}</td><td style="font-weight:500">${c.name}</td>
+      <td>${c.restaurant?.name || 'Restaurant #' + rid}</td>
+      <td>${(c.items || []).length}</td>
+    </tr>`).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--warm-gray);padding:1.5rem">No categories found</td></tr>';
+  } catch { tb.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#ef4444;padding:1rem">Server error</td></tr>'; }
 }
 
-function openModal(type) {
-  const content = document.getElementById('modal-content');
+// ---- CUSTOMERS ----
+async function loadCustomers() {
+  const tb = document.getElementById('cust-tbody');
+  tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem"><div class="spinner"></div></td></tr>';
+  try {
+    const { ok, data } = await api('GET', '/user/all');
+    const list = ok ? (data.data || []) : [];
+    tb.innerHTML = list.map(u => `<tr>
+      <td>${u.id}</td><td style="font-weight:500">${u.name}</td><td>${u.email}</td>
+      <td>${u.phone || '—'}</td>
+      <td><span class="badge badge-amber">${u.role}</span></td>
+      <td style="color:var(--warm-gray);font-size:0.8rem">${u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-IN') : '—'}</td>
+    </tr>`).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--warm-gray);padding:1.5rem">No users found</td></tr>';
+  } catch { tb.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#ef4444;padding:1rem">Server error</td></tr>'; }
+}
+
+// ---- AGENTS ----
+async function loadAgents() {
+  const tb = document.getElementById('agent-tbody');
+  tb.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem"><div class="spinner"></div></td></tr>';
+  try {
+    const { ok, data } = await api('GET', '/delivery-agent/all');
+    const list = ok ? (data.data || []) : [];
+    tb.innerHTML = list.map(a => `<tr>
+      <td>${a.id}</td><td style="font-weight:500">${a.user?.name || '—'}</td>
+      <td>${a.user?.phone || '—'}</td><td>${a.vehicleNumber}</td>
+      <td>${a.rating ? a.rating + ' ★' : 'New'}</td>
+      <td><span class="badge ${a.available ? 'badge-green' : 'badge-yellow'}">${a.available ? 'Available' : 'On Delivery'}</span></td>
+      <td><button onclick="toggleAgentAvailability(${a.id}, ${!a.available})" class="btn btn-outline-amber" style="padding:0.3rem 0.7rem;font-size:0.75rem">${a.available ? 'Set Busy' : 'Set Available'}</button></td>
+    </tr>`).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--warm-gray);padding:1.5rem">No agents found</td></tr>';
+  } catch { tb.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#ef4444;padding:1rem">Server error</td></tr>'; }
+}
+
+// ---- MODAL SYSTEM ----
+function closeModal() { document.getElementById('modal-backdrop').classList.remove('open'); }
+
+function openModal(type, ...args) {
+  const body = document.getElementById('modal-body');
   const templates = {
-    restaurant: `
-      <div class="modal-title">Add Restaurant</div>
-      <div class="fg"><label>Name</label><input id="m-name" placeholder="Spice Garden"></div>
-      <div class="fg"><label>Cuisine</label><input id="m-cuisine" placeholder="Indian"></div>
-      <div class="fg"><label>Address</label><input id="m-address" placeholder="123 MG Road"></div>
-      <div class="fg"><label>Phone</label><input id="m-phone" placeholder="9876543210"></div>
-      <div class="modal-actions"><button class="btn btn-outline" onclick="closeModal()">Cancel</button><button class="btn btn-amber" onclick="saveRestaurant()">Save</button></div>
-      <div class="resp" id="m-resp"></div>`,
-    agent: `
-      <div class="modal-title">Add Delivery Agent</div>
-      <div class="fg"><label>User ID</label><input id="m-uid" type="number" placeholder="User ID"></div>
-      <div class="fg"><label>Vehicle Number</label><input id="m-vehicle" placeholder="KA01AB1234"></div>
-      <div class="fg"><label>Rating</label><input id="m-rating" type="number" placeholder="4.5" step="0.1" min="1" max="5"></div>
-      <div class="modal-actions"><button class="btn btn-outline" onclick="closeModal()">Cancel</button><button class="btn btn-amber" onclick="saveAgent()">Save</button></div>
-      <div class="resp" id="m-resp"></div>`,
-    menuitem: `
-      <div class="modal-title">Add Menu Item</div>
-      <div class="fg"><label>Category ID</label><input id="m-catid" type="number" placeholder="Category ID"></div>
-      <div class="fg"><label>Name</label><input id="m-iname" placeholder="Butter Chicken"></div>
-      <div class="fg"><label>Description</label><input id="m-idesc" placeholder="Creamy tomato-based curry"></div>
-      <div class="fg"><label>Price (₹)</label><input id="m-iprice" type="number" placeholder="320"></div>
-      <div class="modal-actions"><button class="btn btn-outline" onclick="closeModal()">Cancel</button><button class="btn btn-amber" onclick="saveMenuItem()">Save</button></div>
-      <div class="resp" id="m-resp"></div>`
+    addRestaurant: () => `
+      <div class="modal-header"><div class="modal-title">Add Restaurant</div><button class="modal-close" onclick="closeModal()">×</button></div>
+      <div class="form-group"><label>Restaurant Name *</label><input id="m-rname" placeholder="Spice Garden"></div>
+      <div class="form-group"><label>Cuisine *</label><input id="m-rcuisine" placeholder="Indian"></div>
+      <div class="form-group"><label>Address</label><input id="m-raddress" placeholder="123 MG Road, Bangalore"></div>
+      <div class="form-group"><label>Phone</label><input id="m-rphone" placeholder="9876543210"></div>
+      <div class="modal-actions">
+        <button class="btn btn-outline btn-full" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary btn-full" onclick="saveRestaurant()">Add Restaurant</button>
+      </div>
+      <div class="alert" id="m-alert"></div>`,
+
+    editRestaurant: () => {
+      const [id, name, cuisine, address, phone, isOpen] = args;
+      return `
+      <div class="modal-header"><div class="modal-title">Edit Restaurant</div><button class="modal-close" onclick="closeModal()">×</button></div>
+      <input type="hidden" id="m-rid" value="${id}">
+      <div class="form-group"><label>Name</label><input id="m-rname" value="${name}"></div>
+      <div class="form-group"><label>Cuisine</label><input id="m-rcuisine" value="${cuisine}"></div>
+      <div class="form-group"><label>Address</label><input id="m-raddress" value="${address}"></div>
+      <div class="form-group"><label>Phone</label><input id="m-rphone" value="${phone}"></div>
+      <div class="form-group"><label>Status</label>
+        <select id="m-ropen"><option value="true" ${isOpen?'selected':''}>Open</option><option value="false" ${!isOpen?'selected':''}>Closed</option></select>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-outline btn-full" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary btn-full" onclick="updateRestaurant()">Save Changes</button>
+      </div>
+      <div class="alert" id="m-alert"></div>`;
+    },
+
+    addMenuItem: () => `
+      <div class="modal-header"><div class="modal-title">Add Menu Item</div><button class="modal-close" onclick="closeModal()">×</button></div>
+      <div class="form-group"><label>Category ID *</label><input id="m-catid" type="number" placeholder="Category ID"></div>
+      <div class="form-group"><label>Item Name *</label><input id="m-iname" placeholder="Butter Chicken"></div>
+      <div class="form-group"><label>Description</label><input id="m-idesc" placeholder="Rich creamy curry"></div>
+      <div class="form-group"><label>Price (₹) *</label><input id="m-iprice" type="number" placeholder="320"></div>
+      <div class="modal-actions">
+        <button class="btn btn-outline btn-full" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary btn-full" onclick="saveMenuItem()">Add Item</button>
+      </div>
+      <div class="alert" id="m-alert"></div>`,
+
+    editMenuItem: () => {
+      const [id, name, desc, price, available] = args;
+      return `
+      <div class="modal-header"><div class="modal-title">Edit Menu Item</div><button class="modal-close" onclick="closeModal()">×</button></div>
+      <input type="hidden" id="m-iid" value="${id}">
+      <div class="form-group"><label>Name</label><input id="m-iname" value="${name}"></div>
+      <div class="form-group"><label>Description</label><input id="m-idesc" value="${desc}"></div>
+      <div class="form-group"><label>Price (₹)</label><input id="m-iprice" type="number" value="${price}"></div>
+      <div class="form-group"><label>Available</label>
+        <select id="m-iavail"><option value="true" ${available?'selected':''}>Yes</option><option value="false" ${!available?'selected':''}>No</option></select>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-outline btn-full" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary btn-full" onclick="updateMenuItem()">Save</button>
+      </div>
+      <div class="alert" id="m-alert"></div>`;
+    },
+
+    addCategory: () => `
+      <div class="modal-header"><div class="modal-title">Add Category</div><button class="modal-close" onclick="closeModal()">×</button></div>
+      <div class="form-group"><label>Restaurant ID *</label><input id="m-crestid" type="number" placeholder="Restaurant ID"></div>
+      <div class="form-group"><label>Category Name *</label><input id="m-cname" placeholder="Starters, Main Course..."></div>
+      <div class="modal-actions">
+        <button class="btn btn-outline btn-full" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary btn-full" onclick="saveCategory()">Add Category</button>
+      </div>
+      <div class="alert" id="m-alert"></div>`,
+
+    addAgent: () => `
+      <div class="modal-header"><div class="modal-title">Add Delivery Agent</div><button class="modal-close" onclick="closeModal()">×</button></div>
+      <div class="form-group"><label>User ID *</label><input id="m-auid" type="number" placeholder="User ID (from Customers)"></div>
+      <div class="form-group"><label>Vehicle Number *</label><input id="m-aveh" placeholder="KA01AB1234"></div>
+      <div class="form-group"><label>Initial Rating</label><input id="m-arat" type="number" step="0.1" min="1" max="5" placeholder="4.5"></div>
+      <div class="modal-actions">
+        <button class="btn btn-outline btn-full" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary btn-full" onclick="saveAgent()">Add Agent</button>
+      </div>
+      <div class="alert" id="m-alert"></div>`,
+
+    assignAgent: () => {
+      const [orderId] = args;
+      return `
+      <div class="modal-header"><div class="modal-title">Assign Delivery Agent</div><button class="modal-close" onclick="closeModal()">×</button></div>
+      <p style="color:var(--warm-gray);font-size:0.85rem;margin-bottom:1.2rem">Order #${orderId} — Select an available agent</p>
+      <div class="form-group"><label>Agent ID</label><input id="m-agentid" type="number" placeholder="Agent ID"></div>
+      <div class="modal-actions">
+        <button class="btn btn-outline btn-full" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary btn-full" onclick="assignAgent(${orderId})">Assign</button>
+      </div>
+      <div class="alert" id="m-alert"></div>`;
+    }
   };
-  content.innerHTML = templates[type] || '';
-  document.getElementById('modal-bg').classList.add('open');
+
+  body.innerHTML = (templates[type] || (() => '<p>Unknown modal</p>'))();
+  document.getElementById('modal-backdrop').classList.add('open');
 }
 
-function closeModal() { document.getElementById('modal-bg').classList.remove('open'); }
-
-function showResp(msg, type) {
-  const el = document.getElementById('m-resp');
+function mAlert(msg, type) {
+  const el = document.getElementById('m-alert');
   if (!el) return;
-  el.textContent = msg; el.className = 'resp ' + type; el.style.display = 'block';
+  el.textContent = msg; el.className = 'alert show alert-' + type;
 }
 
+// ---- CRUD ACTIONS ----
 async function saveRestaurant() {
-  const body = { name: document.getElementById('m-name').value, cuisine: document.getElementById('m-cuisine').value, address: document.getElementById('m-address').value, phone: document.getElementById('m-phone').value };
-  try {
-    const res = await fetch(`${BASE}/restaurant/add`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
-    const data = await res.json();
-    if (res.ok) { showResp('✓ Restaurant added!', 's'); setTimeout(() => { closeModal(); loadRestaurants(); }, 1200); }
-    else showResp(data.message || 'Failed', 'e');
-  } catch(e) { showResp('Server not connected', 'e'); }
+  const body = { name: document.getElementById('m-rname').value.trim(), cuisine: document.getElementById('m-rcuisine').value.trim(), address: document.getElementById('m-raddress').value.trim(), phone: document.getElementById('m-rphone').value.trim() };
+  if (!body.name || !body.cuisine) { mAlert('Name and cuisine are required', 'error'); return; }
+  const { ok, data } = await api('POST', '/restaurant/add', body);
+  if (ok) { showToast('✓ Restaurant added!', 'success'); closeModal(); loadRestaurants(); }
+  else mAlert(data.message || 'Failed', 'error');
+}
+
+async function updateRestaurant() {
+  const body = { id: parseInt(document.getElementById('m-rid').value), name: document.getElementById('m-rname').value.trim(), cuisine: document.getElementById('m-rcuisine').value.trim(), address: document.getElementById('m-raddress').value.trim(), phone: document.getElementById('m-rphone').value.trim(), isOpen: document.getElementById('m-ropen').value === 'true' };
+  const { ok, data } = await api('PUT', '/restaurant/update', body);
+  if (ok) { showToast('✓ Restaurant updated!', 'success'); closeModal(); loadRestaurants(); }
+  else mAlert(data.message || 'Failed', 'error');
 }
 
 async function saveMenuItem() {
-  const body = { categoryId: parseInt(document.getElementById('m-catid').value), name: document.getElementById('m-iname').value, description: document.getElementById('m-idesc').value, price: parseFloat(document.getElementById('m-iprice').value) };
-  try {
-    const res = await fetch(`${BASE}/menu/add`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
-    const data = await res.json();
-    if (res.ok) { showResp('✓ Item added!', 's'); setTimeout(() => { closeModal(); loadMenu(); }, 1200); }
-    else showResp(data.message || 'Failed', 'e');
-  } catch(e) { showResp('Server not connected', 'e'); }
+  const body = { categoryId: parseInt(document.getElementById('m-catid').value), name: document.getElementById('m-iname').value.trim(), description: document.getElementById('m-idesc').value.trim(), price: parseFloat(document.getElementById('m-iprice').value) };
+  if (!body.categoryId || !body.name || !body.price) { mAlert('Category ID, name and price required', 'error'); return; }
+  const { ok, data } = await api('POST', '/menu/add', body);
+  if (ok) { showToast('✓ Menu item added!', 'success'); closeModal(); loadMenu(); }
+  else mAlert(data.message || 'Failed', 'error');
 }
 
-function loadAllData() { loadDashboard(); }
+async function updateMenuItem() {
+  const body = { id: parseInt(document.getElementById('m-iid').value), name: document.getElementById('m-iname').value.trim(), description: document.getElementById('m-idesc').value.trim(), price: parseFloat(document.getElementById('m-iprice').value), available: document.getElementById('m-iavail').value === 'true' };
+  const { ok, data } = await api('PUT', '/menu/update', body);
+  if (ok) { showToast('✓ Menu item updated!', 'success'); closeModal(); loadMenu(); }
+  else mAlert(data.message || 'Failed', 'error');
+}
+
+async function deleteMenuItem(id) {
+  if (!confirm('Delete this menu item?')) return;
+  const { ok, data } = await api('DELETE', '/menu/delete/' + id);
+  if (ok) { showToast('✓ Deleted', 'success'); loadMenu(); }
+  else showToast(data.message || 'Failed', 'error');
+}
+
+async function saveCategory() {
+  const body = { name: document.getElementById('m-cname').value.trim(), restaurantId: parseInt(document.getElementById('m-crestid').value) };
+  if (!body.name || !body.restaurantId) { mAlert('Name and restaurant ID required', 'error'); return; }
+  const { ok, data } = await api('POST', '/category/add', body);
+  if (ok) { showToast('✓ Category added!', 'success'); closeModal(); }
+  else mAlert(data.message || 'Failed', 'error');
+}
+
+async function saveAgent() {
+  const body = { id: parseInt(document.getElementById('m-auid').value), vehicleNumber: document.getElementById('m-aveh').value.trim(), rating: parseFloat(document.getElementById('m-arat').value) || 0 };
+  if (!body.id || !body.vehicleNumber) { mAlert('User ID and vehicle number required', 'error'); return; }
+  const { ok, data } = await api('POST', '/delivery-agent/add', body);
+  if (ok) { showToast('✓ Agent added!', 'success'); closeModal(); loadAgents(); }
+  else mAlert(data.message || 'Failed', 'error');
+}
+
+async function assignAgent(orderId) {
+  const agentId = parseInt(document.getElementById('m-agentid').value);
+  if (!agentId) { mAlert('Enter agent ID', 'error'); return; }
+  const { ok, data } = await api('PUT', `/order/assign/${orderId}/${agentId}`);
+  if (ok) { showToast('✓ Agent assigned!', 'success'); closeModal(); loadOrders(); }
+  else mAlert(data.message || 'Failed', 'error');
+}
+
+async function toggleAgentAvailability(id, available) {
+  // You'd need an update endpoint; for now show a toast
+  showToast('Agent availability update requires a PATCH /delivery-agent/' + id + ' endpoint', 'info');
+}
+
+// Initial load
 loadDashboard();
 </script>
 </body>
 </html>
+Done

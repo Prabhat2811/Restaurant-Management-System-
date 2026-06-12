@@ -6,12 +6,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import com.management.dto.LoginDto;
 import com.management.dto.ResponseStructure;
 import com.management.dto.UserDto;
 import com.management.entity.User;
 import com.management.exception.DuplicateEntryException;
 import com.management.exception.IdNotFoundException;
 import com.management.exception.ResourceNotFoundException;
+import com.management.exception.RuleViolationException;
 import com.management.repository.UserRepository;
 
 @Service
@@ -38,6 +40,20 @@ public class UserService {
                 .message("User Registered Successfully")
                 .data(userRepository.save(user)).build();
     }
+    
+    public ResponseStructure<User> login(LoginDto dto) {
+        User user = userRepository.findByEmail(dto.getEmail())
+                .orElseThrow(() -> new ResourceNotFoundException("No account found with this email"));
+
+        if (!user.getPassword().equals(dto.getPassword()))
+            throw new RuleViolationException("Incorrect password");
+
+        return ResponseStructure.<User>builder()
+                .statusCode(HttpStatus.OK.value())
+                .message("Login Successful")
+                .data(user)
+                .build();
+    }
 
     public ResponseStructure<User> getUserById(Integer id) {
         User user = userRepository.findById(id)
@@ -52,7 +68,7 @@ public class UserService {
         List<User> users = userRepository.findAll();
         if (users.isEmpty()) throw new ResourceNotFoundException("No Users Found");
         return ResponseStructure.<List<User>>builder()
-                .statusCode(HttpStatus.FOUND.value())
+                .statusCode(HttpStatus.OK.value())
                 .message(users.size() + " User(s) Found")
                 .data(users).build();
     }
