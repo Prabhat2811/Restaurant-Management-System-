@@ -46,7 +46,7 @@ public class DeliveryAgentService {
         List<DeliveryAgent> list = agentRepository.findByAvailableTrue();
         if (list.isEmpty()) throw new ResourceNotFoundException("No Available Agents");
         return ResponseStructure.<List<DeliveryAgent>>builder()
-                .statusCode(HttpStatus.FOUND.value())
+                .statusCode(HttpStatus.OK.value())
                 .message(list.size() + " Agent(s) Available")
                 .data(list).build();
     }
@@ -55,8 +55,24 @@ public class DeliveryAgentService {
         List<DeliveryAgent> list = agentRepository.findAll();
         if (list.isEmpty()) throw new ResourceNotFoundException("No Agents Found");
         return ResponseStructure.<List<DeliveryAgent>>builder()
-                .statusCode(HttpStatus.FOUND.value())
+                .statusCode(HttpStatus.OK.value())
                 .message(list.size() + " Agent(s) Found")
                 .data(list).build();
+    }
+    
+    public DeliveryAgent setBusy(Integer id) {
+        DeliveryAgent agent = agentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Agent not found"));
+
+        agent.setAvailable(false); // BUSY
+        return agentRepository.save(agent);
+    }
+
+    public DeliveryAgent setAvailable(Integer id) {
+        DeliveryAgent agent = agentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Agent not found"));
+
+        agent.setAvailable(true);
+        return agentRepository.save(agent);
     }
 }

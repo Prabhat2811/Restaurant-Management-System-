@@ -67,7 +67,12 @@ input:focus,select:focus{border-color:var(--amber)}
     <a href="index.html" class="back-home">← Back to Home</a>
     <div class="tabs">
       <div class="tab active" onclick="switchTab('register')">Register</div>
-      <div class="tab" onclick="switchTab('login')">Login</div>
+		<div class="tab">
+  <a href="login.html"
+     style="text-decoration:none;color:inherit">
+     Login
+  </a>
+</div>
     </div>
 
     <!-- REGISTER -->
@@ -82,32 +87,66 @@ input:focus,select:focus{border-color:var(--amber)}
       <div class="form-group"><label>Phone</label><input type="tel" id="reg-phone" placeholder="9876543210"></div>
       <div class="form-group"><label>Password</label><input type="password" id="reg-password" placeholder="••••••••"></div>
       <div class="form-group">
-        <label>Role</label>
-        <select id="reg-role">
-          <option value="CUSTOMER">Customer</option>
-          <option value="RESTAURANT_ADMIN">Restaurant Admin</option>
-          <option value="DELIVERY_AGENT">Delivery Agent</option>
-        </select>
-      </div>
+    <label>Role</label>
+    <input type="text" value="Customer" readonly>
+</div>
       <button class="btn-submit" onclick="register()">Create Account</button>
       <div class="response-box" id="reg-response"></div>
       <div class="divider">or</div>
-      <div style="text-align:center;font-size:0.85rem;color:var(--warm-gray)">Already have an account? <a href="#" onclick="switchTab('login')" style="color:var(--amber);text-decoration:none">Sign in</a></div>
+      <div style="text-align:center;font-size:0.85rem;color:var(--warm-gray)">
+      Already have an account? 
+		<a href="login.html">Sign in</a>
+      </div>
     </div>
 
     <!-- LOGIN -->
     <div class="form-panel" id="login-panel">
-      <div class="form-title">Welcome back</div>
-      <div class="form-sub">Sign in to your Savor account</div>
-      <div class="form-group"><label>Email</label><input type="email" id="login-email" placeholder="rahul@email.com"></div>
-      <div class="form-group"><label>Password</label><input type="password" id="login-password" placeholder="••••••••"></div>
-      <button class="btn-submit" onclick="login()">Sign In</button>
-      <div class="response-box" id="login-response"></div>
-      <div class="divider">or</div>
-      <div style="text-align:center;font-size:0.85rem;color:var(--warm-gray)">New here? <a href="#" onclick="switchTab('register')" style="color:var(--amber);text-decoration:none">Create account</a></div>
+    <div class="form-title">Welcome back</div>
+    <div class="form-sub">Sign in to your Savor account</div>
+
+    <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="login-email" placeholder="rahul@email.com">
     </div>
-  </div>
+
+    <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="login-password" placeholder="••••••••">
+    </div>
+
+    <button class="btn-submit" onclick="login()">Sign In</button>
+
+    <div class="response-box" id="login-response"></div>
+
+    <!-- ADMIN LOGIN BUTTON -->
+    <div class="divider">Admin Access</div>
+
+    <a href="admin-login.html"
+       style="
+          display:block;
+          text-align:center;
+          padding:0.9rem;
+          background:#1A1008;
+          color:white;
+          text-decoration:none;
+          border-radius:3px;
+          font-weight:500;
+          margin-bottom:1rem;
+       ">
+       Login as Admin / Restaurant Admin
+    </a>
+
+    <div class="divider">or</div>
+
+    <div style="text-align:center;font-size:0.85rem;color:var(--warm-gray)">
+        New here?
+        <a href="#" onclick="switchTab('register')"
+           style="color:var(--amber);text-decoration:none">
+           Create account
+        </a>
+    </div>
 </div>
+<script src="shared.js"></script>
 
 <script>
 const BASE = 'http://localhost:8080';
@@ -144,20 +183,7 @@ async function register() {
   } catch(e) { showResponse('reg-response', 'Cannot connect to server. Is the backend running?', 'error'); }
 }
 
-async function login() {
-  const body = {
-    email: document.getElementById('login-email').value,
-    password: document.getElementById('login-password').value
-  };
-  try {
-    const res = await fetch(`${BASE}/user/login`, {
-      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)
-    });
-    const data = await res.json();
-    if (res.ok) { showResponse('login-response', '✓ Login successful! Redirecting...', 'success'); setTimeout(()=>window.location='restaurants.html',1000); }
-    else showResponse('login-response', data.message || 'Login failed', 'error');
-  } catch(e) { showResponse('login-response', 'Cannot connect to server. Is the backend running?', 'error'); }
-}
+
 </script>
 </body>
 </html>

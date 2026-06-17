@@ -84,7 +84,11 @@ body { display: grid; grid-template-columns: 230px 1fr; min-height: 100vh; backg
   <div class="sec active" id="sec-dashboard">
     <div class="top-bar">
       <div><div class="page-title">Dashboard</div><div class="page-sub" id="dash-greeting">Good morning</div></div>
-      <button class="btn btn-outline-amber btn-sm" onclick="loadDashboard()">↻ Refresh</button>
+		<button id="refreshBtn"
+  class="btn btn-outline-amber btn-sm"
+  onclick="loadDashboard()">
+  ↻ Refresh
+</button>
     </div>
     <div class="stats">
       <div class="stat amber"><div class="stat-lbl">Open Restaurants</div><div class="stat-val" id="s-restaurants">—</div><div class="stat-sub">Currently serving</div></div>
@@ -231,8 +235,20 @@ body { display: grid; grid-template-columns: 230px 1fr; min-height: 100vh; backg
 <script src="shared.js"></script>
 <script>
 // Auth check
-const user = getUser();
-if (!user) window.location.href = 'login.html';
+const user = JSON.parse(
+    localStorage.getItem("savor_user")
+);
+
+if(
+    !user ||
+    (
+        user.role !== "ADMIN" &&
+        user.role !== "RESTAURANT_ADMIN"
+    )
+){
+    window.location.href =
+        "admin-login.html";
+}
 
 // Set sidebar user info
 if (user) {
@@ -263,24 +279,60 @@ function sb(s) {
 
 // ---- DASHBOARD ----
 async function loadDashboard() {
-  const calls = [
-    api('GET', '/restaurant/open'),
-    api('GET', '/user/all'),
-    api('GET', '/delivery-agent/available')
-  ];
-  const [rests, users, agents] = await Promise.allSettled(calls);
+  const btn = document.getElementById("refreshBtn");
 
-  if (rests.value?.ok) {
-    const list = rests.value.data.data || [];
-    document.getElementById('s-restaurants').textContent = list.length;
-    document.getElementById('dash-rest-body').innerHTML = list.slice(0,5).map(r =>
-      `<tr><td>${r.name}</td><td>${r.cuisine}</td><td>${r.rating > 0 ? r.rating + '★' : 'New'}</td></tr>`
-    ).join('') || '<tr><td colspan="3" style="text-align:center;color:var(--warm-gray)">No open restaurants</td></tr>';
+  // UI: loading state
+  btn.disabled = true;
+  btn.textContent = "Refreshing...";
+
+  // show skeleton state immediately
+  document.getElementById('s-restaurants').textContent = "…";
+  document.getElementById('s-users').textContent = "…";
+  document.getElementById('s-agents').textContent = "…";
+
+  try {
+    const [rests, users, agents] = await Promise.all([
+      api('GET', '/restaurant/open'),
+      api('GET', '/user/all'),
+      api('GET', '/delivery-agent/available')
+    ]);
+
+    // RESTAURANTS
+    if (rests?.ok) {
+      const list = rests.data?.data ?? rests.data ?? [];
+      document.getElementById('s-restaurants').textContent = list.length;
+
+      document.getElementById('dash-rest-body').innerHTML =
+        list.slice(0, 5).map(r => `
+          <tr>
+            <td>${r.name}</td>
+            <td>${r.cuisine}</td>
+            <td>${r.rating > 0 ? r.rating + '★' : 'New'}</td>
+          </tr>
+        `).join('');
+    }
+
+    // USERS
+    if (users?.ok) {
+      const list = users.data?.data ?? users.data ?? [];
+      document.getElementById('s-users').textContent = list.length;
+    }
+
+    // AGENTS
+    if (agents?.ok) {
+      const list = agents.data?.data ?? agents.data ?? [];
+      document.getElementById('s-agents').textContent = list.length;
+    }
+
+    document.getElementById('s-orders').textContent = "—";
+
+  } catch (err) {
+    console.error("Dashboard error:", err);
+    showToast("Failed to refresh dashboard", "error");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "↻ Refresh";
   }
-  if (users.value?.ok) document.getElementById('s-users').textContent = (users.value.data.data || []).length;
-  if (agents.value?.ok) document.getElementById('s-agents').textContent = (agents.value.data.data || []).length;
-  document.getElementById('s-orders').textContent = '—';
-  document.getElementById('dash-orders-body').innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--warm-gray)">Enter restaurant ID in Orders tab</td></tr>';
 }
 
 // ---- ORDERS ----
@@ -335,7 +387,7 @@ async function loadRestaurants() {
   const tb = document.getElementById('rest-tbody');
   tb.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem"><div class="spinner"></div></td></tr>';
   try {
-    const { ok, data } = await api('GET', '/restaurant/open');
+    const { ok, data } = await api('GET', '/restaurant/all');
     const list = ok ? (data.data || []) : [];
     tb.innerHTML = list.map(r => `<tr>
       <td>${r.id}</td><td style="font-weight:500">${r.name}</td><td>${r.cuisine}</td>
@@ -406,18 +458,69 @@ async function loadCustomers() {
 // ---- AGENTS ----
 async function loadAgents() {
   const tb = document.getElementById('agent-tbody');
-  tb.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem"><div class="spinner"></div></td></tr>';
+
+  tb.innerHTML = `
+    <tr>
+      <td colspan="7" style="text-align:center;padding:2rem">
+        <div class="spinner"></div>
+      </td>
+    </tr>`;
+
   try {
-    const { ok, data } = await api('GET', '/delivery-agent/all');
-    const list = ok ? (data.data || []) : [];
-    tb.innerHTML = list.map(a => `<tr>
-      <td>${a.id}</td><td style="font-weight:500">${a.user?.name || '—'}</td>
-      <td>${a.user?.phone || '—'}</td><td>${a.vehicleNumber}</td>
-      <td>${a.rating ? a.rating + ' ★' : 'New'}</td>
-      <td><span class="badge ${a.available ? 'badge-green' : 'badge-yellow'}">${a.available ? 'Available' : 'On Delivery'}</span></td>
-      <td><button onclick="toggleAgentAvailability(${a.id}, ${!a.available})" class="btn btn-outline-amber" style="padding:0.3rem 0.7rem;font-size:0.75rem">${a.available ? 'Set Busy' : 'Set Available'}</button></td>
-    </tr>`).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--warm-gray);padding:1.5rem">No agents found</td></tr>';
-  } catch { tb.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#ef4444;padding:1rem">Server error</td></tr>'; }
+    const res = await api('GET', '/delivery-agent/all');
+
+    console.log("AGENT API RESPONSE:", res);
+
+    const list =
+      res?.ok
+        ? (res?.data?.data ?? res?.data ?? [])
+        : [];
+
+    if (!Array.isArray(list)) {
+      throw new Error("Invalid agent response format");
+    }
+
+    if (list.length === 0) {
+      tb.innerHTML = `
+        <tr>
+          <td colspan="7" style="text-align:center;color:var(--warm-gray);padding:1.5rem">
+            No agents found
+          </td>
+        </tr>`;
+      return;
+    }
+
+    tb.innerHTML = list.map(a => `
+      <tr>
+        <td>${a.id}</td>
+        <td style="font-weight:500">${a.user?.name || '—'}</td>
+        <td>${a.user?.phone || '—'}</td>
+        <td>${a.vehicleNumber || '—'}</td>
+        <td>${a.rating ? a.rating + ' ★' : 'New'}</td>
+        <td>
+          <span class="badge ${a.available ? 'badge-green' : 'badge-yellow'}">
+            ${a.available ? 'Available' : 'On Delivery'}
+          </span>
+        </td>
+        <td>
+          <button onclick="toggleAgentAvailability(${a.id}, ${!a.available})"
+            class="btn btn-outline-amber"
+            style="padding:0.3rem 0.7rem;font-size:0.75rem">
+            ${a.available ? 'Set Busy' : 'Set Available'}
+          </button>
+        </td>
+      </tr>
+    `).join('');
+
+  } catch (err) {
+    console.error(err);
+    tb.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align:center;color:red;padding:1rem">
+          Failed to load agents
+        </td>
+      </tr>`;
+  }
 }
 
 // ---- MODAL SYSTEM ----
@@ -595,12 +698,26 @@ async function assignAgent(orderId) {
 }
 
 async function toggleAgentAvailability(id, available) {
-  // You'd need an update endpoint; for now show a toast
-  showToast('Agent availability update requires a PATCH /delivery-agent/' + id + ' endpoint', 'info');
-}
+	  const endpoint = available
+	    ? `/delivery-agent/${id}/available`
+	    : `/delivery-agent/${id}/busy`;
+
+	  const { ok, data } = await api('PATCH', endpoint);
+
+	  if (ok) {
+	    showToast(
+	      `Agent marked as ${available ? 'AVAILABLE' : 'BUSY'}`,
+	      'success'
+	    );
+	    loadAgents();
+	  } else {
+	    showToast(data.message || 'Failed to update agent', 'error');
+	  }
+	}
 
 // Initial load
 loadDashboard();
+setInterval(loadDashboard, 30000);
 </script>
 </body>
 </html>

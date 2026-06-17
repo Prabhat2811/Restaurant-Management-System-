@@ -8,38 +8,77 @@ import org.springframework.stereotype.Service;
 
 import com.management.dto.LoginDto;
 import com.management.dto.ResponseStructure;
+import com.management.dto.Role;
 import com.management.dto.UserDto;
+import com.management.entity.Customer;
+import com.management.entity.DeliveryAgent;
 import com.management.entity.User;
 import com.management.exception.DuplicateEntryException;
 import com.management.exception.IdNotFoundException;
 import com.management.exception.ResourceNotFoundException;
 import com.management.exception.RuleViolationException;
+import com.management.repository.CustomerRepository;
+import com.management.repository.DeliveryAgentRepository;
 import com.management.repository.UserRepository;
 
 @Service
 public class UserService {
+	
 	@Autowired
-	private UserRepository
-	userRepository;
+	private UserRepository userRepository;
 
-    public ResponseStructure<User> registerUser(UserDto dto) {
-        if (userRepository.existsByEmail(dto.getEmail()))
-            throw new DuplicateEntryException("Email already exists: " + dto.getEmail());
-        if (userRepository.existsByPhone(dto.getPhone()))
-            throw new DuplicateEntryException("Phone already exists: " + dto.getPhone());
+	@Autowired
+	private CustomerRepository customerRepository;
 
-        User user = new User();
-        user.setName(dto.getName());
-        user.setEmail(dto.getEmail());
-        user.setPassword(dto.getPassword());
-        user.setPhone(dto.getPhone());
-        user.setRole(dto.getRole());
+	@Autowired
+	private DeliveryAgentRepository deliveryAgentRepository;
 
-        return ResponseStructure.<User>builder()
-                .statusCode(HttpStatus.CREATED.value())
-                .message("User Registered Successfully")
-                .data(userRepository.save(user)).build();
-    }
+	public ResponseStructure<User> registerUser(UserDto dto) {
+
+	    if (userRepository.existsByEmail(dto.getEmail()))
+	        throw new DuplicateEntryException("Email already exists: " + dto.getEmail());
+
+	    if (userRepository.existsByPhone(dto.getPhone()))
+	        throw new DuplicateEntryException("Phone already exists: " + dto.getPhone());
+
+	    User user = new User();
+	    user.setName(dto.getName());
+	    user.setEmail(dto.getEmail());
+	    user.setPassword(dto.getPassword());
+	    user.setPhone(dto.getPhone());
+	    user.setRole(dto.getRole());
+
+	    User savedUser = userRepository.save(user);
+
+	    // Create Customer automatically
+	    if (savedUser.getRole() == Role.CUSTOMER) {
+
+	        Customer customer = new Customer();
+	        customer.setUser(savedUser);
+
+	        customerRepository.save(customer);
+	    }
+
+	    // Create Delivery Agent automatically
+	    else if (savedUser.getRole() == Role.DELIVERY_AGENT) {
+
+	        DeliveryAgent agent = new DeliveryAgent();
+	        agent.setUser(savedUser);
+	        agent.setAvailable(true);
+	        agent.setRating(0.0);
+
+	        // Temporary vehicle number
+	        agent.setVehicleNumber("TEMP-" + savedUser.getId());
+
+	        deliveryAgentRepository.save(agent);
+	    }
+
+	    return ResponseStructure.<User>builder()
+	            .statusCode(HttpStatus.CREATED.value())
+	            .message("User Registered Successfully")
+	            .data(savedUser)
+	            .build();
+	}
     
     public ResponseStructure<User> login(LoginDto dto) {
         User user = userRepository.findByEmail(dto.getEmail())

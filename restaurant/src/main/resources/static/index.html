@@ -96,13 +96,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1.2rem 3rem;display:
 .cta-btns{display:flex;gap:1rem;justify-content:center}
 
 /* FOOTER */
-footer{background:#120C04;padding:3rem;display:flex;justify-content:space-between;align-items:center}
-.footer-logo{font-family:var(--font-display);font-size:1.3rem;font-weight:700;color:var(--cream)}
-.footer-logo span{color:var(--amber)}
-.footer-links{display:flex;gap:2rem}
-.footer-links a{color:rgba(253,246,236,0.4);text-decoration:none;font-size:0.85rem;transition:color 0.2s}
-.footer-links a:hover{color:var(--amber)}
-.footer-copy{color:rgba(253,246,236,0.3);font-size:0.8rem}
+
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
 .hero-text{animation:fadeUp 0.8s ease forwards}
@@ -111,25 +105,18 @@ footer{background:#120C04;padding:3rem;display:flex;justify-content:space-betwee
 </head>
 <body>
 
-<nav>
-  <div class="nav-logo">Sav<span>or</span></div>
-  <ul class="nav-links">
-    <li><a href="index.html">Home</a></li>
-    <li><a href="restaurants.html">Restaurants</a></li>
-    <li><a href="services.html">Services</a></li>
-    <li><a href="about.html">About</a></li>
-    <li><a href="contact.html">Contact</a></li>
-  </ul>
-  <a href="register.html" class="nav-cta">Get Started</a>
-</nav>
+
 
 <section class="hero">
   <div class="hero-text">
     <h1>Manage Your <em>Restaurant</em> Smarter</h1>
     <p>A complete platform to handle orders, menus, deliveries, and customers — all in one elegant system.</p>
     <div class="hero-btns">
-      <a href="register.html" class="btn-primary">Start Free</a>
+	  <a id="start-free-btn" href="register.html" class="btn-primary">
+    Start Free
+</a>
       <a href="restaurants.html" class="btn-outline">Browse Restaurants</a>
+      
     </div>
   </div>
   <div class="hero-visual">
@@ -242,22 +229,54 @@ footer{background:#120C04;padding:3rem;display:flex;justify-content:space-betwee
   <h2>Ready to <em>elevate</em> your restaurant?</h2>
   <p>Join 500+ restaurants already using Savor to run smarter operations.</p>
   <div class="cta-btns">
-    <a href="register.html" class="btn-primary">Create Account</a>
+	<a id="create-account-btn" href="register.html" class="btn-primary">
+    Create Account
+</a>
     <a href="contact.html" style="color:rgba(253,246,236,0.7);padding:0.9rem 2rem;text-decoration:none;font-size:0.95rem">Contact Sales →</a>
   </div>
 </section>
 
-<footer>
-  <div class="footer-logo">Sav<span>or</span></div>
-  <div class="footer-links">
-    <a href="index.html">Home</a>
-    <a href="restaurants.html">Restaurants</a>
-    <a href="services.html">Services</a>
-    <a href="about.html">About</a>
-    <a href="contact.html">Contact</a>
-  </div>
-  <div class="footer-copy">© 2026 Savor. All rights reserved.</div>
-</footer>
 
+
+
+<script src="shared.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const createBtn = document.getElementById('create-account-btn');
+    const user = getUser();
+
+    if (user && createBtn) {
+        createBtn.style.display = 'none';
+    }
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('start-free-btn');
+    const user = getUser();
+
+    if (user) {
+        btn.style.display = 'none';
+    } else {
+        btn.href = 'login.html';   // go to login instead of register
+    }
+});
+</script>
+
+<script>
+document.body.insertAdjacentHTML(
+    'afterbegin',
+    getNav('about.html')
+);
+
+document.body.insertAdjacentHTML(
+    'beforeend',
+    getFooter()
+);
+
+renderNavUser();
+</script>
 </body>
 </html>

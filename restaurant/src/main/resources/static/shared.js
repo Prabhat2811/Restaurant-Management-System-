@@ -6,9 +6,27 @@ const BASE = 'http://localhost:8080';
 // --- Storage helpers ---
 const Store = {
   set: (k, v) => localStorage.setItem(k, JSON.stringify(v)),
-  get: (k) => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
+  get: (k) => {
+    try {
+      return JSON.parse(localStorage.getItem(k));
+    } catch {
+      return null;
+    }
+  },
   clear: () => localStorage.clear()
 };
+
+function setUser(u) {
+  Store.set('savor_user', u);
+}
+
+function getUser() {
+  return Store.get('savor_user');
+}
+
+
+
+
 
 // --- HTTP helpers ---
 async function api(method, path, body = null) {
@@ -111,12 +129,76 @@ function getNav(activePage) {
 
 function getFooter() {
   return `
-  <footer style="background:#120C04;padding:2.5rem 3rem;display:flex;justify-content:space-between;align-items:center">
-    <div style="font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;color:#FDF6EC">Sav<span style="color:#C8762A">or</span></div>
-    <div style="display:flex;gap:2rem">
-      ${[['index.html','Home'],['restaurants.html','Restaurants'],['services.html','Services'],['about.html','About'],['contact.html','Contact']].map(([h,l])=>`<a href="${h}" style="color:rgba(253,246,236,0.4);text-decoration:none;font-size:0.85rem">${l}</a>`).join('')}
-    </div>
-    <div style="color:rgba(253,246,236,0.3);font-size:0.8rem">© 2026 Savor. All rights reserved.</div>
+  <footer style="
+      background:#120C04;
+      padding:1.8rem 3rem;
+      border-top:1px solid rgba(255,255,255,0.08);
+  ">
+      <div style="
+          display:flex;
+          justify-content:space-between;
+          align-items:flex-start;
+          flex-wrap:wrap;
+          gap:2rem;
+      ">
+
+          <div>
+              <div style="
+                  font-family:'Playfair Display',serif;
+                  font-size:1.5rem;
+                  font-weight:900;
+                  color:#FDF6EC;
+                  margin-bottom:0.8rem;
+              ">
+                  Sav<span style="color:#C8762A">or</span>
+              </div>
+
+              <p style="
+                  color:rgba(253,246,236,0.55);
+                  max-width:380px;
+                  line-height:1.6;
+                  font-size:0.9rem;
+              ">
+                  A modern restaurant management platform designed to streamline
+                  restaurant operations, menu management, customer engagement,
+                  order tracking, and delivery coordination.
+              </p>
+          </div>
+
+          <div>
+              <h4 style="
+                  color:#FDF6EC;
+                  margin-bottom:0.8rem;
+                  font-size:1rem;
+                  font-weight:600;
+              ">
+                  Contact
+              </h4>
+
+              <p style="
+                  color:rgba(253,246,236,0.55);
+                  line-height:1.8;
+                  font-size:0.9rem;
+                  margin:0;
+              ">
+                  Bangalore, Karnataka, India<br>
+                  support@savor.com<br>
+                  +91 96937 11738
+              </p>
+          </div>
+
+      </div>
+
+      <div style="
+          margin-top:1rem;
+          padding-top:0.8rem;
+          border-top:1px solid rgba(255,255,255,0.08);
+          text-align:center;
+          color:rgba(253,246,236,0.35);
+          font-size:0.82rem;
+      ">
+          © 2026 Savor Restaurant Management System. All Rights Reserved.
+      </div>
   </footer>`;
 }
 

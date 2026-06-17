@@ -55,10 +55,13 @@ body { display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh; }
     <a href="index.html" class="back-link">← Back to Home</a>
 
     <div class="tabs">
-      <div class="tab active" onclick="switchTab('login')">Sign In</div>
-      <div class="tab" onclick="switchTab('register')">Create Account</div>
-    </div>
-
+  <div class="tab active">Sign In</div>
+  <div class="tab">
+    <a href="register.html" style="text-decoration:none;color:inherit">
+      Create Account
+    </a>
+  </div>
+</div>
     <!-- LOGIN PANEL -->
     <div class="tab-panel active" id="panel-login">
       <div class="form-title">Welcome back</div>
@@ -81,48 +84,15 @@ body { display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh; }
 
       <div class="divider">or</div>
       <div style="text-align:center;font-size:0.85rem;color:var(--warm-gray)">
-        New here? <a href="#" onclick="switchTab('register')" style="color:var(--amber);text-decoration:none;font-weight:500">Create account</a>
+		New here?
+<a href="register.html"
+   style="color:var(--amber);text-decoration:none;font-weight:500">
+   Create account
+</a>
       </div>
     </div>
 
-    <!-- REGISTER PANEL -->
-    <div class="tab-panel" id="panel-register">
-      <div class="form-title">Create account</div>
-      <div class="form-sub">Join Savor — it's free to get started</div>
-
-      <div class="form-group">
-        <label>I am a</label>
-        <div class="role-selector">
-          <div class="role-btn active" onclick="selectRole('CUSTOMER',this)">🛒 Customer</div>
-          <div class="role-btn" onclick="selectRole('RESTAURANT_ADMIN',this)">🍽️ Restaurant</div>
-          <div class="role-btn" onclick="selectRole('DELIVERY_AGENT',this)">🚴 Agent</div>
-        </div>
-        <input type="hidden" id="r-role" value="CUSTOMER">
-      </div>
-
-      <div class="form-row">
-        <div class="form-group"><label>First Name</label><input id="r-fname" placeholder="Rahul"></div>
-        <div class="form-group"><label>Last Name</label><input id="r-lname" placeholder="Sharma"></div>
-      </div>
-      <div class="form-group"><label>Email Address</label><input type="email" id="r-email" placeholder="rahul@email.com"></div>
-      <div class="form-group"><label>Phone Number</label><input type="tel" id="r-phone" placeholder="9876543210" maxlength="10"></div>
-      <div class="form-group">
-        <label>Password</label>
-        <div class="pw-wrap">
-          <input type="password" id="r-password" placeholder="Min 6 characters">
-          <button class="pw-toggle" onclick="togglePw('r-password')">👁</button>
-        </div>
-      </div>
-      <div class="form-group"><label>Confirm Password</label><input type="password" id="r-confirm" placeholder="Repeat password"></div>
-
-      <button class="btn btn-primary btn-full" onclick="doRegister()" id="reg-btn">Create Account</button>
-      <div class="alert" id="register-alert"></div>
-
-      <div class="divider">or</div>
-      <div style="text-align:center;font-size:0.85rem;color:var(--warm-gray)">
-        Already have an account? <a href="#" onclick="switchTab('login')" style="color:var(--amber);text-decoration:none;font-weight:500">Sign in</a>
-      </div>
-    </div>
+    
 
   </div>
 </div>
@@ -131,18 +101,6 @@ body { display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh; }
 <script>
 // Redirect if already logged in
 if (getUser()) window.location.href = 'index.html';
-
-function switchTab(tab) {
-  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='register')));
-  document.getElementById('panel-login').classList.toggle('active', tab==='login');
-  document.getElementById('panel-register').classList.toggle('active', tab==='register');
-}
-
-function selectRole(role, el) {
-  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('r-role').value = role;
-}
 
 function togglePw(id) {
   const inp = document.getElementById(id);
@@ -189,47 +147,11 @@ async function doLogin() {
   }
 }
 
-async function doRegister() {
-  const fname = document.getElementById('r-fname').value.trim();
-  const lname = document.getElementById('r-lname').value.trim();
-  const email = document.getElementById('r-email').value.trim();
-  const phone = document.getElementById('r-phone').value.trim();
-  const password = document.getElementById('r-password').value;
-  const confirm = document.getElementById('r-confirm').value;
-  const role = document.getElementById('r-role').value;
-
-  if (!fname || !email || !phone || !password) { showAlert('register-alert', 'Please fill in all required fields', 'error'); return; }
-  if (!email.includes('@')) { showAlert('register-alert', 'Please enter a valid email', 'error'); return; }
-  if (phone.length !== 10 || isNaN(phone)) { showAlert('register-alert', 'Phone must be 10 digits', 'error'); return; }
-  if (password.length < 6) { showAlert('register-alert', 'Password must be at least 6 characters', 'error'); return; }
-  if (password !== confirm) { showAlert('register-alert', 'Passwords do not match', 'error'); return; }
-
-  setLoading('reg-btn', true, 'Create Account');
-  try {
-    const { ok, data } = await api('POST', '/user/register', { name: (fname + ' ' + lname).trim(), email, phone, password, role });
-    if (ok) {
-      showAlert('register-alert', '✓ Account created! Signing you in...', 'success');
-      // Auto login after register
-      setTimeout(async () => {
-        const { ok: lok, data: ldata } = await api('POST', '/user/login', { email, password });
-        if (lok) { setUser(ldata.data); window.location.href = 'restaurants.html'; }
-        else switchTab('login');
-      }, 1000);
-    } else {
-      showAlert('register-alert', data.message || 'Registration failed', 'error');
-      setLoading('reg-btn', false, 'Create Account');
-    }
-  } catch {
-    showAlert('register-alert', 'Cannot connect to server. Is Spring Boot running?', 'error');
-    setLoading('reg-btn', false, 'Create Account');
-  }
-}
 
 // Allow Enter key to submit
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter') {
-    if (document.getElementById('panel-login').classList.contains('active')) doLogin();
-    else doRegister();
+    doLogin();
   }
 });
 </script>
