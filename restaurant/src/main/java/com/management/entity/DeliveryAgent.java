@@ -20,7 +20,8 @@ import lombok.Setter;
 @Entity
 @Getter @Setter
 public class DeliveryAgent {
-	@Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Id 
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @OneToOne

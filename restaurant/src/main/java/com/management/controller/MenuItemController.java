@@ -26,7 +26,7 @@ public class MenuItemController {
     private MenuItemService menuItemService;
 
     @PostMapping("/add")
-    public ResponseEntity<ResponseStructure<MenuItem>> add(@RequestBody MenuItemDto dto) {
+    public ResponseEntity<ResponseStructure<MenuItem>> addMenuItem(@RequestBody MenuItemDto dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(menuItemService.addMenuItem(dto));
     }
 
@@ -36,12 +36,14 @@ public class MenuItemController {
     }
 
     @GetMapping("/restaurant/{restaurantId}")
-    public ResponseEntity<ResponseStructure<List<MenuItem>>> getByRestaurant(@PathVariable Integer restaurantId) {
-        return ResponseEntity.status(HttpStatus.FOUND).body(menuItemService.getByRestaurant(restaurantId));
+    public ResponseEntity<ResponseStructure<List<MenuItemDto>>> getByRestaurant(@PathVariable Integer restaurantId) {
+        return ResponseEntity.status(HttpStatus.OK).body(menuItemService.getByRestaurant(restaurantId));
     }
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<ResponseStructure<String>> delete(@PathVariable Integer id) {
         return ResponseEntity.ok(menuItemService.deleteMenuItem(id));
     }
+    
+    
 }

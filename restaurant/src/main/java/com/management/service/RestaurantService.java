@@ -1,13 +1,17 @@
 package com.management.service;
 
+import java.lang.module.ModuleDescriptor.Builder;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import com.management.dto.DashboardResponse;
 import com.management.dto.ResponseStructure;
 import com.management.dto.RestaurantDto;
+import com.management.entity.MenuItem;
 import com.management.entity.Restaurant;
 import com.management.exception.IdNotFoundException;
 import com.management.exception.ResourceNotFoundException;
@@ -100,6 +104,63 @@ public class RestaurantService {
                 .statusCode(HttpStatus.OK.value())
                 .message(list.size() + " Restaurant(s) Found")
                 .data(list)
+                .build();
+    }
+
+    public @Nullable ResponseStructure<Restaurant> getById(Integer id) {
+
+        Restaurant restaurant = restaurantRepository.findById(id)
+                .orElseThrow(() -> new IdNotFoundException("Restaurant Not Found"));
+
+        return ResponseStructure.<Restaurant>builder()
+                .statusCode(HttpStatus.OK.value())
+                .message("Restaurant Found")
+                .data(restaurant)
+                .build();
+    }
+    
+    public ResponseStructure<DashboardResponse> getDashboard(Integer restaurantId) {
+
+        Restaurant restaurant =
+                restaurantRepository.findById(restaurantId)
+                        .orElseThrow(() ->
+                                new IdNotFoundException(
+                                        "Restaurant Not Found"));
+
+        int totalCategories =
+                restaurant.getCategories().size();
+
+        int totalItems =
+                restaurant.getCategories()
+                        .stream()
+                        .mapToInt(
+                                c -> c.getItems().size())
+                        .sum();
+
+        long availableItems =
+                restaurant.getCategories()
+                        .stream()
+                        .flatMap(
+                                c -> c.getItems().stream())
+                        .filter(MenuItem::getAvailable)
+                        .count();
+
+        long unavailableItems =
+                totalItems - availableItems;
+
+        DashboardResponse dashboard =
+                DashboardResponse.builder()
+                        .totalCategories(totalCategories)
+                        .totalItems(totalItems)
+                        .availableItems(availableItems)
+                        .unavailableItems(unavailableItems)
+                        .build();
+
+        return ResponseStructure
+                .<DashboardResponse>builder()
+                .statusCode(HttpStatus.OK.value())
+                .message("Dashboard Loaded Successfully")
+                .data(dashboard)
                 .build();
     }
 }

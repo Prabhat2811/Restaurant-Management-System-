@@ -6,12 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import com.management.dto.DeliveryAgentDto;
+import com.management.dto.DeliveryAgentRegistrationDto;
 import com.management.dto.ResponseStructure;
+import com.management.dto.Role;
 import com.management.entity.DeliveryAgent;
 import com.management.entity.User;
 import com.management.exception.DuplicateEntryException;
-import com.management.exception.IdNotFoundException;
 import com.management.exception.ResourceNotFoundException;
 import com.management.repository.DeliveryAgentRepository;
 import com.management.repository.UserRepository;
@@ -23,23 +23,52 @@ public class DeliveryAgentService {
     @Autowired
     private UserRepository userRepository;
 
-    public ResponseStructure<DeliveryAgent> addAgent(DeliveryAgentDto dto) {
-        User user = userRepository.findById(dto.getId())
-                .orElseThrow(() -> new IdNotFoundException("User Not Found"));
+    public ResponseStructure<DeliveryAgent> registerAgent(
+            DeliveryAgentRegistrationDto dto) {
 
-        if (agentRepository.existsByVehicleNumber(dto.getVehicleNumber()))
-            throw new DuplicateEntryException("Vehicle number already exists");
+        if (userRepository.existsByEmail(dto.getEmail()))
+            throw new DuplicateEntryException(
+                    "Email already registered");
+
+        if (userRepository.existsByPhone(dto.getPhone()))
+            throw new DuplicateEntryException(
+                    "Phone already registered");
+
+        if (agentRepository.existsByVehicleNumber(
+                dto.getVehicleNumber()))
+            throw new DuplicateEntryException(
+                    "Vehicle number already exists");
+
+        User user = new User();
+
+        user.setName(dto.getName());
+        user.setEmail(dto.getEmail());
+        user.setPassword(dto.getPassword()); // encode if using BCrypt
+        user.setPhone(dto.getPhone());
+        user.setRole(Role.DELIVERY_AGENT);
+        
+        user = userRepository.save(user);
+
+        System.out.println("USER SAVED => " + user.getId());
+        user = userRepository.save(user);
 
         DeliveryAgent agent = new DeliveryAgent();
+
         agent.setUser(user);
         agent.setVehicleNumber(dto.getVehicleNumber());
         agent.setRating(dto.getRating());
         agent.setAvailable(true);
-
+        agent.setUser(user);
+        
+        System.out.println("Agent before save = " + agent);
+        System.out.println("Agent id = " + agent.getId());
+        agent = agentRepository.saveAndFlush(agent);
+        
         return ResponseStructure.<DeliveryAgent>builder()
                 .statusCode(HttpStatus.CREATED.value())
-                .message("Agent Added Successfully")
-                .data(agentRepository.save(agent)).build();
+                .message("Delivery Agent Added Successfully")
+                .data(agent)
+                .build();
     }
 
     public ResponseStructure<List<DeliveryAgent>> getAvailableAgents() {

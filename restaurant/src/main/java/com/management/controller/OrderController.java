@@ -45,16 +45,24 @@ public class OrderController {
 
     @GetMapping("/customer/{customerId}")
     public ResponseEntity<ResponseStructure<List<Order>>> byCustomer(@PathVariable Integer customerId) {
-        return ResponseEntity.status(HttpStatus.FOUND).body(orderService.getOrdersByCustomer(customerId));
+        return ResponseEntity.status(HttpStatus.OK).body(orderService.getOrdersByCustomer(customerId));
     }
 
     @GetMapping("/restaurant/{restaurantId}")
     public ResponseEntity<ResponseStructure<List<Order>>> byRestaurant(@PathVariable Integer restaurantId) {
-        return ResponseEntity.status(HttpStatus.FOUND).body(orderService.getOrdersByRestaurant(restaurantId));
+        return ResponseEntity.status(HttpStatus.OK).body(orderService.getOrdersByRestaurant(restaurantId));
     }
 
     @GetMapping("/agent/{agentId}")
     public ResponseEntity<ResponseStructure<List<Order>>> byAgent(@PathVariable Integer agentId) {
-        return ResponseEntity.status(HttpStatus.FOUND).body(orderService.getOrdersByAgent(agentId));
+        return ResponseEntity.status(HttpStatus.OK).body(orderService.getOrdersByAgent(agentId));
+    }
+    
+    @GetMapping("/all")
+    public ResponseEntity<ResponseStructure<List<Order>>> getAllOrders() {
+
+        return ResponseEntity.ok(
+                orderService.getAllOrders()
+        );
     }
 }

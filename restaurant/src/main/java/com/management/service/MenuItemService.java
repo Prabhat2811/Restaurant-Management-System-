@@ -50,13 +50,39 @@ public class MenuItemService {
                 .data(menuItemRepository.save(item)).build();
     }
 
-    public ResponseStructure<List<MenuItem>> getByRestaurant(Integer restaurantId) {
-        List<MenuItem> items = menuItemRepository.findByCategory_Restaurant_Id(restaurantId);
-        if (items.isEmpty()) throw new ResourceNotFoundException("No Menu Items Found");
-        return ResponseStructure.<List<MenuItem>>builder()
-                .statusCode(HttpStatus.FOUND.value())
-                .message(items.size() + " Item(s) Found")
-                .data(items).build();
+    public ResponseStructure<List<MenuItemDto>> getByRestaurant(Integer restaurantId) {
+
+        List<MenuItem> items =
+                menuItemRepository.findByCategory_Restaurant_Id(restaurantId);
+
+        if (items.isEmpty()) {
+            throw new ResourceNotFoundException("No Menu Items Found");
+        }
+
+        List<MenuItemDto> dtoList = items.stream().map(item -> {
+
+            MenuItemDto dto = new MenuItemDto();
+
+            dto.setId(item.getId());
+            dto.setName(item.getName());
+            dto.setDescription(item.getDescription());
+            dto.setPrice(item.getPrice());
+            dto.setAvailable(item.getAvailable());
+
+            if (item.getCategory() != null) {
+                dto.setCategoryId(item.getCategory().getId());
+                dto.setCategoryName(item.getCategory().getName());
+            }
+
+            return dto;
+
+        }).toList();
+
+        return ResponseStructure.<List<MenuItemDto>>builder()
+                .statusCode(HttpStatus.OK.value())
+                .message(dtoList.size() + " Item(s) Found")
+                .data(dtoList)
+                .build();
     }
 
     public ResponseStructure<String> deleteMenuItem(Integer id) {

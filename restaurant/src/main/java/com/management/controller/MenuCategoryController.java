@@ -30,6 +30,8 @@ public class MenuCategoryController {
 
     @GetMapping("/restaurant/{restaurantId}")
     public ResponseEntity<ResponseStructure<List<MenuCategory>>> getByRestaurant(@PathVariable Integer restaurantId) {
-        return ResponseEntity.status(HttpStatus.FOUND).body(categoryService.getByRestaurant(restaurantId));
+        return ResponseEntity.status(HttpStatus.OK).body(categoryService.getByRestaurant(restaurantId));
     }
+    
+   
 }

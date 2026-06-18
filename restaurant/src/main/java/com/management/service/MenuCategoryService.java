@@ -2,6 +2,7 @@ package com.management.service;
 
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -38,8 +39,10 @@ public class MenuCategoryService {
         List<MenuCategory> list = categoryRepository.findByRestaurant_Id(restaurantId);
         if (list.isEmpty()) throw new ResourceNotFoundException("No Categories Found");
         return ResponseStructure.<List<MenuCategory>>builder()
-                .statusCode(HttpStatus.FOUND.value())
+                .statusCode(HttpStatus.OK.value())
                 .message(list.size() + " Category(s) Found")
                 .data(list).build();
     }
+
+	
 }

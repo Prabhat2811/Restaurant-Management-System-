@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.management.dto.DashboardResponse;
 import com.management.dto.ResponseStructure;
 import com.management.dto.RestaurantDto;
 import com.management.entity.Restaurant;
@@ -62,7 +63,20 @@ public class RestaurantController {
             @PathVariable String name) {
 
         return ResponseEntity.ok(
-                restaurantService.searchByName(name)
-        );
+                restaurantService.searchByName(name));
+    }
+    
+    @GetMapping("/{id}")
+    public ResponseEntity<ResponseStructure<Restaurant>> getById(@PathVariable Integer id){
+    	return new ResponseEntity<ResponseStructure<Restaurant>>(restaurantService.getById(id), HttpStatus.OK);
+    }
+    
+    @GetMapping("/{restaurantId}/dashboard")
+    public ResponseEntity<ResponseStructure<DashboardResponse>>
+    dashboard(@PathVariable Integer restaurantId) {
+
+        return ResponseEntity.ok(
+                restaurantService.getDashboard(
+                        restaurantId));
     }
 }

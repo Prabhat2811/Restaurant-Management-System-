@@ -51,10 +51,6 @@
 </div>
 
 <div class="main">
-  <div class="search-row">
-    <input type="number" id="cid-input" placeholder="Enter your Customer ID to view orders">
-    <button class="btn btn-primary" onclick="loadOrders()">Load Orders</button>
-  </div>
 
   <div id="orders-list">
     <div class="empty-state">
@@ -69,14 +65,16 @@
 
 <script src="shared.js"></script>
 <script>
-document.getElementById('nav-placeholder').innerHTML = getNav('');
+document.getElementById('nav-placeholder').innerHTML = getNav('orders.html');
 document.getElementById('footer-placeholder').innerHTML = getFooter();
 renderNavUser();
 
 const user = getUser();
-if (user) {
-  document.getElementById('cid-input').value = user.id || '';
-  if (user.id) loadOrders();
+
+if (!user) {
+    window.location.href = "login.html";
+} else {
+    loadOrders();
 }
 
 const statusOrder = ['PLACED','CONFIRMED','PREPARING','READY','OUT_FOR_DELIVERY','DELIVERED'];
@@ -102,66 +100,101 @@ function renderStatusBar(currentStatus) {
       </div>`).join('')}
   </div>`;
 }
-
 async function loadOrders() {
-  const cid = document.getElementById('cid-input').value.trim();
-  if (!cid) { showToast('Please enter a Customer ID', 'error'); return; }
 
-  const list = document.getElementById('orders-list');
-  list.innerHTML = '<div class="loading-state"><div class="spinner"></div><br><br>Loading orders...</div>';
+    const user = getUser();
 
-  try {
-    const { ok, data } = await api('GET', '/order/customer/' + cid);
-    if (!ok) {
-      list.innerHTML = `<div class="empty-state"><div class="empty-icon">📦</div><div class="empty-title">${data.message || 'No orders found'}</div><a href="restaurants.html" class="btn btn-primary btn-sm" style="margin-top:1rem">Browse Restaurants</a></div>`;
-      return;
+    if (!user || !user.id) {
+        showToast("Please login first", "error");
+        return;
     }
-    const orders = (data.data || []).reverse();
-    if (!orders.length) {
-      list.innerHTML = `<div class="empty-state"><div class="empty-icon">📦</div><div class="empty-title">No orders yet</div><p>Place your first order!</p><br><a href="restaurants.html" class="btn btn-primary btn-sm">Browse Restaurants</a></div>`;
-      return;
+
+    const customerId = user.id;
+
+    const container =
+        document.getElementById("orders-list");
+
+    container.innerHTML = `
+        <div class="empty-state">
+            <div class="empty-icon">⏳</div>
+            <div class="empty-title">Loading Orders...</div>
+        </div>`;
+
+    try {
+
+        const res = await api(
+            "GET",
+            "/order/customer/" + customerId
+        );
+
+        console.log("CUSTOMER ORDERS", res);
+
+        const orders =
+            res?.data?.data ??
+            res?.data ??
+            [];
+
+        renderOrders(orders);
+
+    } catch (err) {
+
+        console.error(err);
+
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">❌</div>
+                <div class="empty-title">
+                    Failed to load orders
+                </div>
+            </div>`;
     }
-    list.innerHTML = orders.map(order => `
-      <div class="order-card" id="oc-${order.id}">
-        <div class="order-card-header" onclick="toggleOrder(${order.id})">
-          <div class="oc-left">
-            <div class="oc-id">Order #${order.id} <span class="badge ${statusBadgeClass(order.status)}" style="font-size:0.7rem;margin-left:0.4rem">${statusEmoji[order.status]||''} ${order.status}</span></div>
-            <div class="oc-meta">${order.restaurant?.name || 'Restaurant'} · ${order.orderedAt ? new Date(order.orderedAt).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—'}</div>
-          </div>
-          <div class="oc-right">
-            <span class="oc-amount">₹${order.totalAmount || 0}</span>
-            <span class="oc-arrow">▾</span>
-          </div>
-        </div>
-        <div class="order-card-body">
-          <div class="order-status-bar">${renderStatusBar(order.status)}</div>
-          <br>
-          <div style="font-size:0.82rem;font-weight:500;text-transform:uppercase;letter-spacing:0.06em;color:var(--warm-gray);margin-bottom:0.5rem">Items</div>
-          <div class="items-list">
-            ${(order.orderItems || []).map(i => `
-              <div class="item-row">
-                <span>${i.menuItem?.name || 'Item'} × ${i.quantity}</span>
-                <span style="color:var(--amber);font-weight:500">₹${i.price}</span>
-              </div>`).join('') || '<div style="color:var(--warm-gray);font-size:0.85rem">No item details</div>'}
-          </div>
-          <div style="display:flex;gap:2rem;font-size:0.82rem;color:var(--warm-gray)">
-            <span>Payment: <strong>${order.payment?.paymentMethod || '—'}</strong></span>
-            <span>Status: <strong>${order.payment?.paymentStatus || '—'}</strong></span>
-            ${order.deliveryAgent ? `<span>Agent: <strong>${order.deliveryAgent?.user?.name || 'Agent #'+order.deliveryAgent?.id}</strong></span>` : ''}
-          </div>
-          ${user && (user.role === 'RESTAURANT_ADMIN' || user.role === 'ADMIN') ? `
-          <div class="update-row">
-            <select id="status-sel-${order.id}">
-              <option value="">Update status...</option>
-              ${['CONFIRMED','PREPARING','READY','OUT_FOR_DELIVERY','DELIVERED','CANCELLED'].map(s => `<option value="${s}">${s}</option>`).join('')}
-            </select>
-            <button class="btn btn-primary btn-sm" onclick="updateStatus(${order.id})">Update</button>
-          </div>` : ''}
-        </div>
-      </div>`).join('');
-  } catch {
-    list.innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Cannot connect to server</div></div>';
-  }
+}
+function renderOrders(orders){
+
+    const container =
+        document.getElementById("orders-list");
+
+    if(!orders.length){
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">📦</div>
+                <div class="empty-title">No Orders Found</div>
+            </div>`;
+        return;
+    }
+
+    container.innerHTML =
+        orders.map(o => `
+            <div class="order-card">
+
+                <div class="order-card-header">
+
+                    <div>
+                        <div class="oc-id">
+                            Order #${o.id}
+                        </div>
+
+                        <div class="oc-meta">
+                            ${o.restaurant?.name || 'Restaurant'}
+                        </div>
+                    </div>
+
+                    <div class="oc-right">
+
+                        <span class="badge ${statusBadgeClass(o.status)}">
+                            ${o.status}
+                        </span>
+
+                        <div class="oc-amount">
+                            ₹${o.totalAmount || 0}
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+        `).join('');
 }
 
 function toggleOrder(id) {

@@ -291,11 +291,16 @@ async function loadDashboard() {
   document.getElementById('s-agents').textContent = "…";
 
   try {
-    const [rests, users, agents] = await Promise.all([
-      api('GET', '/restaurant/open'),
-      api('GET', '/user/all'),
-      api('GET', '/delivery-agent/available')
-    ]);
+
+	  const rid =
+	      document.getElementById('ord-rest-id')?.value?.trim();
+
+	  const [rests, users, agents, orders] = await Promise.all([
+		  api('GET', '/restaurant/open'),
+		  api('GET', '/user/all'),
+		  api('GET', '/delivery-agent/available'),
+		  api('GET', '/order/all')
+		]);
 
     // RESTAURANTS
     if (rests?.ok) {
@@ -320,11 +325,37 @@ async function loadDashboard() {
 
     // AGENTS
     if (agents?.ok) {
-      const list = agents.data?.data ?? agents.data ?? [];
-      document.getElementById('s-agents').textContent = list.length;
-    }
+  const list =
+      agents.data?.data ??
+      agents.data ??
+      [];
 
-    document.getElementById('s-orders').textContent = "—";
+  document.getElementById('s-agents').textContent =
+      list.length;
+}
+
+if (orders?.ok) {
+
+  const orderList =
+      orders.data?.data ??
+      orders.data ??
+      [];
+
+  document.getElementById('s-orders').textContent =
+      orderList.length;
+
+  document.getElementById('dash-orders-body').innerHTML =
+      orderList
+      .slice(0, 5)
+      .map(o => `
+        <tr>
+          <td>#${o.id}</td>
+          <td>${o.restaurant?.name || '-'}</td>
+          <td>₹${o.totalAmount || 0}</td>
+          <td>${sb(o.status)}</td>
+        </tr>
+      `).join('');
+}
 
   } catch (err) {
     console.error("Dashboard error:", err);
@@ -337,18 +368,60 @@ async function loadDashboard() {
 
 // ---- ORDERS ----
 let allOrders = [];
+
 async function loadOrders() {
-  const rid = document.getElementById('ord-rest-id').value.trim();
-  if (!rid) { showToast('Enter a restaurant ID', 'warning'); return; }
-  const tb = document.getElementById('orders-tbody');
-  tb.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem"><div class="spinner"></div></td></tr>';
-  try {
-    const { ok, data } = await api('GET', '/order/restaurant/' + rid);
-    allOrders = ok ? (data.data || []) : [];
-    document.getElementById('s-orders').textContent = allOrders.length;
-    renderOrders(allOrders);
-  } catch { tb.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#ef4444;padding:1rem">Server error</td></tr>'; }
-}
+
+	  const rid = document.getElementById('ord-rest-id').value.trim();
+
+	  if (!rid) {
+	    showToast('Enter a restaurant ID', 'warning');
+	    return;
+	  }
+
+	  const tb = document.getElementById('orders-tbody');
+
+	  tb.innerHTML = `
+	    <tr>
+	      <td colspan="8" style="text-align:center;padding:2rem">
+	        <div class="spinner"></div>
+	      </td>
+	    </tr>`;
+
+	  try {
+
+	    const response =
+	      await api('GET', '/order/restaurant/' + rid);
+
+	    console.log("ORDER RESPONSE =>", response);
+
+	    allOrders =
+	      response?.data?.data ??
+	      response?.data?.orders ??
+	      response?.data ??
+	      [];
+
+	    if (!Array.isArray(allOrders)) {
+	      allOrders = [];
+	    }
+
+	    document.getElementById('s-orders').textContent =
+	      allOrders.length;
+
+	    renderOrders(allOrders);
+
+	  } catch (err) {
+
+	    console.error(err);
+
+	    tb.innerHTML = `
+	      <tr>
+	        <td colspan="8"
+	            style="text-align:center;color:red;padding:1rem">
+	          Failed to load orders
+	        </td>
+	      </tr>`;
+	  }
+	}
 function filterOrders() {
   const f = document.getElementById('ord-status-filter').value;
   renderOrders(f ? allOrders.filter(o => o.status === f) : allOrders);
@@ -408,11 +481,14 @@ async function loadMenu() {
   tb.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem"><div class="spinner"></div></td></tr>';
   try {
     const { ok, data } = await api('GET', '/menu/restaurant/' + rid);
-    const list = ok ? (data.data || []) : [];
+    const list =
+        data?.data ??
+        data ??
+        [];
     tb.innerHTML = list.map(i => `<tr>
       <td>${i.id}</td><td style="font-weight:500">${i.name}</td>
       <td style="color:var(--warm-gray);font-size:0.8rem">${i.description || '—'}</td>
-      <td>${i.category?.name || '—'}</td>
+      <td>${i.categoryName || '—'}</td>
       <td style="color:var(--amber);font-weight:600">₹${i.price}</td>
       <td><span class="badge ${i.available ? 'badge-green' : 'badge-red'}">${i.available ? 'Yes' : 'No'}</span></td>
       <td>
@@ -430,7 +506,10 @@ async function loadCategories() {
   const tb = document.getElementById('cat-tbody');
   try {
     const { ok, data } = await api('GET', '/category/restaurant/' + rid);
-    const list = ok ? (data.data || []) : [];
+    const list =
+        data?.data ??
+        data ??
+        [];
     tb.innerHTML = list.map(c => `<tr>
       <td>${c.id}</td><td style="font-weight:500">${c.name}</td>
       <td>${c.restaurant?.name || 'Restaurant #' + rid}</td>
@@ -600,16 +679,74 @@ function openModal(type, ...args) {
       </div>
       <div class="alert" id="m-alert"></div>`,
 
-    addAgent: () => `
-      <div class="modal-header"><div class="modal-title">Add Delivery Agent</div><button class="modal-close" onclick="closeModal()">×</button></div>
-      <div class="form-group"><label>User ID *</label><input id="m-auid" type="number" placeholder="User ID (from Customers)"></div>
-      <div class="form-group"><label>Vehicle Number *</label><input id="m-aveh" placeholder="KA01AB1234"></div>
-      <div class="form-group"><label>Initial Rating</label><input id="m-arat" type="number" step="0.1" min="1" max="5" placeholder="4.5"></div>
-      <div class="modal-actions">
-        <button class="btn btn-outline btn-full" onclick="closeModal()">Cancel</button>
-        <button class="btn btn-primary btn-full" onclick="saveAgent()">Add Agent</button>
+      addAgent: () => `
+      <div class="modal-header">
+          <div class="modal-title">
+              Add Delivery Agent
+          </div>
+
+          <button class="modal-close"
+                  onclick="closeModal()">
+              ×
+          </button>
       </div>
-      <div class="alert" id="m-alert"></div>`,
+
+      <div class="form-group">
+          <label>Name *</label>
+          <input id="m-aname"
+                 placeholder="Enter Full Name">
+      </div>
+
+      <div class="form-group">
+          <label>Email *</label>
+          <input id="m-aemail"
+                 type="email"
+                 placeholder="Enter Email">
+      </div>
+
+      <div class="form-group">
+          <label>Password *</label>
+          <input id="m-apass"
+                 type="password"
+                 placeholder="Enter Password">
+      </div>
+
+      <div class="form-group">
+          <label>Phone *</label>
+          <input id="m-aphone"
+                 placeholder="Enter Phone Number">
+      </div>
+
+      <div class="form-group">
+          <label>Vehicle Number *</label>
+          <input id="m-aveh"
+                 placeholder="KA01AB1234">
+      </div>
+
+      <div class="form-group">
+          <label>Rating</label>
+          <input id="m-arat"
+                 type="number"
+                 step="0.1"
+                 min="0"
+                 max="5"
+                 value="5">
+      </div>
+
+      <div class="modal-actions">
+          <button class="btn btn-outline btn-full"
+                  onclick="closeModal()">
+              Cancel
+          </button>
+
+          <button class="btn btn-primary btn-full"
+                  onclick="saveAgent()">
+              Create Agent
+          </button>
+      </div>
+
+      <div class="alert" id="m-alert"></div>
+      `,
 
     assignAgent: () => {
       const [orderId] = args;
@@ -682,11 +819,77 @@ async function saveCategory() {
 }
 
 async function saveAgent() {
-  const body = { id: parseInt(document.getElementById('m-auid').value), vehicleNumber: document.getElementById('m-aveh').value.trim(), rating: parseFloat(document.getElementById('m-arat').value) || 0 };
-  if (!body.id || !body.vehicleNumber) { mAlert('User ID and vehicle number required', 'error'); return; }
-  const { ok, data } = await api('POST', '/delivery-agent/add', body);
-  if (ok) { showToast('✓ Agent added!', 'success'); closeModal(); loadAgents(); }
-  else mAlert(data.message || 'Failed', 'error');
+
+    const body = {
+
+        name:
+            document.getElementById('m-aname')
+            .value.trim(),
+
+        email:
+            document.getElementById('m-aemail')
+            .value.trim(),
+
+        password:
+            document.getElementById('m-apass')
+            .value.trim(),
+
+        phone:
+            document.getElementById('m-aphone')
+            .value.trim(),
+
+        vehicleNumber:
+            document.getElementById('m-aveh')
+            .value.trim(),
+
+        rating:
+            parseFloat(
+                document.getElementById('m-arat')
+                .value
+            ) || 5
+    };
+
+    if (
+        !body.name ||
+        !body.email ||
+        !body.password ||
+        !body.phone ||
+        !body.vehicleNumber
+    ) {
+
+        mAlert(
+            'All fields are required',
+            'error'
+        );
+
+        return;
+    }
+
+    const { ok, data } =
+        await api(
+            'POST',
+            '/delivery-agent/register',
+            body
+        );
+
+    if (ok) {
+
+        showToast(
+            '✓ Delivery Agent Created',
+            'success'
+        );
+
+        closeModal();
+
+        loadAgents();
+
+    } else {
+
+        mAlert(
+            data.message || 'Failed',
+            'error'
+        );
+    }
 }
 
 async function assignAgent(orderId) {

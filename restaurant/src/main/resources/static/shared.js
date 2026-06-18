@@ -110,20 +110,79 @@ function renderNavUser() {
 
 // --- Shared nav HTML ---
 function getNav(activePage) {
+
+  const user = getUser();
+
   const pages = [
     ['index.html', 'Home'],
-    ['restaurants.html', 'Restaurants'],
+    ['restaurants.html', 'Restaurants']
+  ];
+
+  // Show My Orders only for logged-in customers
+  if (user && user.role === 'CUSTOMER') {
+    pages.push(['orders.html', 'My Orders']);
+  }
+
+  pages.push(
     ['services.html', 'Services'],
     ['about.html', 'About'],
     ['contact.html', 'Contact']
-  ];
+  );
+
   return `
-  <nav style="position:sticky;top:0;z-index:100;padding:1.1rem 3rem;display:flex;justify-content:space-between;align-items:center;background:rgba(253,246,236,0.95);backdrop-filter:blur(12px);border-bottom:1px solid rgba(200,118,42,0.15)">
-    <a href="index.html" style="font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:900;color:#1A1008;text-decoration:none">Sav<span style="color:#C8762A">or</span></a>
-    <ul style="display:flex;gap:2rem;list-style:none">
-      ${pages.map(([href, label]) => `<li><a href="${href}" style="text-decoration:none;color:${activePage===href?'#C8762A':'#8A7A6A'};font-size:0.88rem;font-weight:500;letter-spacing:0.04em;text-transform:uppercase">${label}</a></li>`).join('')}
+  <nav style="
+      position:sticky;
+      top:0;
+      z-index:100;
+      padding:1rem 2rem;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      background:rgba(253,246,236,0.95);
+      backdrop-filter:blur(12px);
+      border-bottom:1px solid rgba(200,118,42,0.15)">
+
+    <a href="index.html"
+       style="
+       font-family:'Playfair Display',serif;
+       font-size:1.8rem;
+       font-weight:900;
+       color:#1A1008;
+       text-decoration:none">
+       Sav<span style="color:#C8762A">or</span>
+    </a>
+
+    <ul style="
+        display:flex;
+        align-items:center;
+        gap:1.8rem;
+        list-style:none;
+        margin:0;
+        padding:0">
+
+      ${pages.map(([href,label]) => `
+        <li>
+          <a href="${href}"
+             style="
+             text-decoration:none;
+             color:${activePage===href ? '#C8762A' : '#8A7A6A'};
+             font-size:0.9rem;
+             font-weight:${activePage===href ? '700' : '500'};
+             transition:0.3s">
+             ${label}
+          </a>
+        </li>
+      `).join('')}
+
     </ul>
-    <div id="nav-user-area" style="display:flex;align-items:center;gap:1rem"></div>
+
+    <div id="nav-user-area"
+         style="
+         display:flex;
+         align-items:center;
+         gap:1rem">
+    </div>
+
   </nav>`;
 }
 

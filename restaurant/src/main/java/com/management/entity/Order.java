@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.hibernate.annotations.CreationTimestamp;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.management.dto.OrderStatus;
 
 import jakarta.persistence.CascadeType;
@@ -52,6 +53,7 @@ public class Order {
     private DeliveryAgent deliveryAgent;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
+    @JsonManagedReference
     private List<OrderItem> orderItems = new ArrayList<>();
 
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)

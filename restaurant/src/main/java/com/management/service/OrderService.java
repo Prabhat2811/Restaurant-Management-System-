@@ -87,26 +87,48 @@ public class OrderService {
                 .data(orderRepository.save(order)).build();
     }
 
+    
     public ResponseStructure<Order> updateOrderStatus(Integer orderId, OrderStatus status) {
+
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new IdNotFoundException("Order Not Found"));
+                .orElseThrow(() ->
+                        new IdNotFoundException("Order Not Found"));
 
         if (order.getStatus() == OrderStatus.DELIVERED ||
-            order.getStatus() == OrderStatus.CANCELLED)
-            throw new RuleViolationException("Cannot update a " + order.getStatus() + " order");
+            order.getStatus() == OrderStatus.CANCELLED) {
+
+            throw new RuleViolationException(
+                    "Cannot update a " + order.getStatus() + " order");
+        }
 
         order.setStatus(status);
 
         if (status == OrderStatus.DELIVERED) {
-            order.getPayment().setPaymentStatus(PaymentStatus.SUCCESS);
-            if (order.getDeliveryAgent() != null)
-                order.getDeliveryAgent().setAvailable(true);
+
+            if (order.getPayment() != null) {
+                order.getPayment()
+                     .setPaymentStatus(PaymentStatus.SUCCESS);
+            }
+
+            DeliveryAgent agent =
+                    order.getDeliveryAgent();
+
+            if (agent != null) {
+
+                agent.setAvailable(true);
+
+                agentRepository.save(agent);
+            }
         }
+
+        Order updated =
+                orderRepository.save(order);
 
         return ResponseStructure.<Order>builder()
                 .statusCode(HttpStatus.OK.value())
                 .message("Order Status Updated to " + status)
-                .data(orderRepository.save(order)).build();
+                .data(updated)
+                .build();
     }
 
     public ResponseStructure<Order> assignAgent(Integer orderId, Integer agentId) {
@@ -133,7 +155,7 @@ public class OrderService {
         List<Order> orders = orderRepository.findByCustomer_Id(customerId);
         if (orders.isEmpty()) throw new ResourceNotFoundException("No Orders Found");
         return ResponseStructure.<List<Order>>builder()
-                .statusCode(HttpStatus.FOUND.value())
+                .statusCode(HttpStatus.OK.value())
                 .message(orders.size() + " Order(s) Found")
                 .data(orders).build();
     }
@@ -142,7 +164,7 @@ public class OrderService {
         List<Order> orders = orderRepository.findByRestaurant_Id(restaurantId);
         if (orders.isEmpty()) throw new ResourceNotFoundException("No Orders Found");
         return ResponseStructure.<List<Order>>builder()
-                .statusCode(HttpStatus.FOUND.value())
+                .statusCode(HttpStatus.OK.value())
                 .message(orders.size() + " Order(s) Found")
                 .data(orders).build();
     }
@@ -151,8 +173,20 @@ public class OrderService {
         List<Order> orders = orderRepository.findByDeliveryAgent_Id(agentId);
         if (orders.isEmpty()) throw new ResourceNotFoundException("No Orders Found");
         return ResponseStructure.<List<Order>>builder()
-                .statusCode(HttpStatus.FOUND.value())
+                .statusCode(HttpStatus.OK.value())
                 .message(orders.size() + " Order(s) Found")
                 .data(orders).build();
+    }
+    
+    public ResponseStructure<List<Order>> getAllOrders() {
+
+        List<Order> orders = orderRepository.findAll();
+
+        return ResponseStructure
+                .<List<Order>>builder()
+                .statusCode(HttpStatus.OK.value())
+                .message("All Orders Found")
+                .data(orders)
+                .build();
     }
 }

@@ -6,7 +6,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class DeliveryAgentDto {
-	private Integer id;
+	private Integer userId;
 	private String vehicleNumber;
     private Double rating;
 }

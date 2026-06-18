@@ -5,8 +5,9 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class MenuItemDto {
-	private Integer id;
+public class MenuItemResponseDto {
+
+    private Integer id;
     private String name;
     private String description;
     private Double price;

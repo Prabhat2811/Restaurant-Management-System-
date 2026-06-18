@@ -1,6 +1,6 @@
 package com.management.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -21,7 +21,7 @@ public class OrderItem {
 
     @ManyToOne
     @JoinColumn(name = "order_id")
-    @JsonIgnore
+    @JsonBackReference
     private Order order;
 
     @ManyToOne
