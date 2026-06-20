@@ -1,10 +1,13 @@
 package com.management.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,6 +19,7 @@ import com.management.dto.LoginDto;
 import com.management.dto.ResponseStructure;
 import com.management.dto.UserDto;
 import com.management.entity.User;
+import com.management.repository.UserRepository;
 import com.management.service.UserService;
 
 import jakarta.validation.Valid;
@@ -23,6 +27,8 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/user")
 public class UserController {
+	@Autowired
+	private UserRepository userRepository;
 	
 	@Autowired
 	private UserService userService;
@@ -45,5 +51,12 @@ public class UserController {
     @GetMapping("/all")
     public ResponseEntity<ResponseStructure<List<User>>> getAll() {
         return ResponseEntity.status(HttpStatus.OK).body(userService.getAllUsers());
+    }
+    
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
+        User user = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return ResponseEntity.ok(Map.of("data", user));
     }
 }

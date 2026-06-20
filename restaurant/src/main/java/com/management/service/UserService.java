@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.management.dto.LoginDto;
@@ -25,6 +26,9 @@ import com.management.repository.UserRepository;
 public class UserService {
 	
 	@Autowired
+	private PasswordEncoder passwordEncoder;
+	
+	@Autowired
 	private UserRepository userRepository;
 
 	@Autowired
@@ -44,7 +48,7 @@ public class UserService {
 	    User user = new User();
 	    user.setName(dto.getName());
 	    user.setEmail(dto.getEmail());
-	    user.setPassword(dto.getPassword());
+	    user.setPassword(passwordEncoder.encode(dto.getPassword()));
 	    user.setPhone(dto.getPhone());
 	    user.setRole(dto.getRole());
 
