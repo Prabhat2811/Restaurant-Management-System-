@@ -353,7 +353,7 @@ POST /api/auth/login
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/your-username/savor.git
+https://github.com/Prabhat2811/Restaurant-Management-System-.git
 cd savor
 ```
 
@@ -382,16 +382,8 @@ mvn spring-boot:run
 
 The server starts at `http://localhost:8080`
 
-### 4. Bootstrap Admin Account
-On first run, create the admin account by calling:
-```bash
-curl -X POST http://localhost:8080/api/auth/setup-admin
-```
-
-Or open Postman and send a `POST` to `http://localhost:8080/api/auth/setup-admin`
-
-### 5. Open the App
-Navigate to `http://localhost:8080` in your browser.
+### 4. Open the App
+Navigate to `http://localhost:8080/index.html` in your browser.
 
 ---
 
