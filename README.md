@@ -244,7 +244,6 @@ DeliveryAgent ─── 1:1 ─── User
 |---|---|---|---|
 | POST | `/api/auth/register` | Public | Register new customer |
 | POST | `/api/auth/login` | Public | Login, returns user info |
-| POST | `/api/auth/setup-admin` | Public (one-time) | Bootstrap admin account |
 
 ### Users
 | Method | Endpoint | Description |
