@@ -396,16 +396,6 @@ Navigate to `http://localhost:8080` in your browser.
 
 ---
 
-## 🔑 Default Credentials
-
-| Role | Email | Password |
-|---|---|---|
-| Admin | admin@savor.com | Admin@1234 |
-
-> ⚠️ Change the admin password after first login in production.
-
----
-
 ## 📁 Project Structure
 
 ```
