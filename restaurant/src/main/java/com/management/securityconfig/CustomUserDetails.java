@@ -1,41 +1,43 @@
 package com.management.securityconfig;
 
-import java.util.Arrays;
 import java.util.Collection;
-
+import java.util.List;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-
 import com.management.entity.User;
 
-import io.micrometer.common.lang.Nullable;
-
 public class CustomUserDetails implements UserDetails {
-	
-	private User users;
-	
-	public CustomUserDetails(User users) {
-		this.users=users;
-	}
-	
-	
-	@Override
-	public Collection<? extends GrantedAuthority> getAuthorities() {
-		// TODO Auto-generated method stub
-		return Arrays.asList(new SimpleGrantedAuthority(users.getRole().name()));
-	}
 
-	@Override
-	public @Nullable String getPassword() {
-		
-		return users.getPassword();
-	}
+    private final User user;
 
-	@Override
-	public String getUsername() {
-		
-		return users.getEmail();
-	}
+    public CustomUserDetails(User user) {
+        this.user = user;
+    }
 
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
+    }
+
+    @Override
+    public String getPassword() {
+        return user.getPassword();
+    }
+
+    @Override
+    public String getUsername() {
+        return user.getEmail();  // Spring uses this to match against what you pass to authenticate()
+    }
+
+    // Return the underlying User entity if you need it elsewhere
+    public User getUser() {
+        return user;
+    }
+
+    // These must all return true or Spring will reject login even with correct password
+    @Override public boolean isAccountNonExpired() { return true; }
+    @Override public boolean isAccountNonLocked() { return true; }
+    @Override public boolean isCredentialsNonExpired() { return true; }
+    @Override public boolean isEnabled() { return true; }
 }

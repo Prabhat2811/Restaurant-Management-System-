@@ -66,7 +66,7 @@ nav{padding:1.2rem 3rem;display:flex;justify-content:space-between;align-items:c
 </head>
 <body>
 
-
+<div id="nav-placeholder"></div>
 
 <div class="hero">
   <div>
@@ -186,18 +186,10 @@ nav{padding:1.2rem 3rem;display:flex;justify-content:space-between;align-items:c
 <script src="shared.js"></script>
 
 <script>
-document.body.insertAdjacentHTML(
-    'afterbegin',
-    getNav('about.html')
-);
-
-document.body.insertAdjacentHTML(
-    'beforeend',
-    getFooter()
-);
-
-renderNavUser();
+  document.body.insertAdjacentHTML('afterbegin', getNav('about.html'));  
+  document.body.insertAdjacentHTML('beforeend', getFooter());
+  renderNavUser();  
 </script>
-
+<div id="footer-placeholder"></div>
 </body>
 </html>

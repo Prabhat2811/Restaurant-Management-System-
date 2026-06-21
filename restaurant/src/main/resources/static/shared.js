@@ -68,7 +68,6 @@ async function api(method, path, body = null) {
 }
 
 // --- Auth helpers ---
-function getUser() { return Store.get('savor_user'); }
 function logout() { Store.clear(); window.location.href = 'login.html'; }
 function requireAuth() {
   if (!getUser()) { window.location.href = 'login.html'; return false; }

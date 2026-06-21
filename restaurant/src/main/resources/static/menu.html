@@ -500,7 +500,7 @@ function buildCategoryNav() {
   // Group by category
   const catMap = {};
   allItems.forEach(item => {
-    const catName = item.category?.name || 'Uncategorised';
+    const catName = item.categoryName || 'Uncategorised';
     if (!catMap[catName]) catMap[catName] = 0;
     catMap[catName]++;
   });
@@ -550,7 +550,7 @@ function renderMenu() {
   // Group by category
   const groups = {};
   items.forEach(item => {
-    const cat = item.category?.name || 'Uncategorised';
+    const cat = item.categoryName || 'Uncategorised';
     if (!groups[cat]) groups[cat] = [];
     groups[cat].push(item);
   });

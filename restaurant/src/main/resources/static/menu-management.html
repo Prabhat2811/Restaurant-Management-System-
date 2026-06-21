@@ -520,7 +520,7 @@ function renderCategoryList() {
       <span class="cat-item-count">${allCount}</span>
     </div>
     ${categories.map(c => {
-      const count = allMenuItems.filter(i => i.category?.id === c.id || i.category?.name === c.name).length;
+    	const count = allMenuItems.filter(i => i.categoryName === c.name).length;
       return `<div class="cat-item ${selectedCategoryId === c.id ? 'active' : ''}" onclick="selectCategory(${c.id},'${esc(c.name)}')">
         <span class="cat-item-name">${c.name}</span>
         <span class="cat-item-count">${count}</span>
@@ -574,8 +574,11 @@ function filterItems() {
 
   // Category filter
   if (selectedCategoryId !== null) {
-    items = items.filter(i => i.category?.id === selectedCategoryId);
-  }
+    items = items.filter(i => {
+        const cat = categories.find(c => c.id === selectedCategoryId);
+        return cat && i.categoryName === cat.name;
+    });
+}
   // Search filter
   if (search) {
     items = items.filter(i =>
@@ -633,7 +636,7 @@ function renderItemCard(item) {
         <div class="mic-desc">${item.description || '<span style="opacity:0.4;font-style:italic">No description</span>'}</div>
         <div class="mic-price">₹${item.price}</div>
         <div style="font-size:0.72rem;color:var(--warm-gray)">
-          ${item.category?.name ? `<span style="background:rgba(200,118,42,0.08);color:var(--amber);padding:0.1rem 0.4rem;border-radius:2px">${item.category.name}</span>` : ''}
+        ${item.categoryName ? `<span style="background:rgba(200,118,42,0.08);color:var(--amber);padding:0.1rem 0.4rem;border-radius:2px">${item.categoryName}</span>` : ''}
         </div>
       </div>
       <div class="mic-footer">
@@ -647,7 +650,7 @@ function renderItemCard(item) {
 function renderItemRow(item) {
   return `<tr>
     <td style="font-weight:500">${item.name}</td>
-    <td><span style="background:rgba(200,118,42,0.08);color:var(--amber);padding:0.15rem 0.5rem;border-radius:2px;font-size:0.75rem">${item.category?.name || '—'}</span></td>
+    <td><span style="background:rgba(200,118,42,0.08);color:var(--amber);padding:0.15rem 0.5rem;border-radius:2px;font-size:0.75rem">${item.categoryName || '—'}</span></td>
     <td style="color:var(--amber);font-weight:600">₹${item.price}</td>
     <td style="color:var(--warm-gray);font-size:0.82rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${item.description || '—'}</td>
     <td><span class="badge ${item.available ? 'badge-green' : 'badge-red'}">${item.available ? 'Yes' : 'No'}</span></td>
@@ -811,7 +814,7 @@ function openEditModal(id) {
   document.getElementById('edit-desc').value = item.description || '';
   document.getElementById('edit-price').value = item.price;
   document.getElementById('edit-avail').value = String(item.available);
-  if (item.category?.id) document.getElementById('edit-cat').value = item.category.id;
+  if (item.categoryId) document.getElementById('edit-cat').value = item.categoryId;
   document.getElementById('edit-alert').className = 'alert';
   document.getElementById('edit-modal').classList.add('open');
 }

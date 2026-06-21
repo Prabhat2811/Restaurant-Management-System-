@@ -101,10 +101,8 @@
     </div>
 
     <div id="checkout-form">
-      <div class="form-group">
-        <label>Customer ID</label>
-        <input type="number" id="customer-id" placeholder="Your customer ID">
-      </div>
+      <!-- Hidden — auto-filled from localStorage -->
+		<input type="hidden" id="customer-id">
       <div class="form-group">
         <label>Payment Method</label>
         <select id="payment-method">
@@ -138,6 +136,10 @@ document.getElementById('nav-placeholder').innerHTML = getNav('restaurants.html'
 document.getElementById('footer-placeholder').innerHTML = getFooter();
 renderNavUser();
 
+//Pre-fill customer ID from logged-in user
+const user = getUser();
+if (user) document.getElementById('customer-id').value = user.id || '';
+
 const params = new URLSearchParams(window.location.search);
 const restaurantId = parseInt(params.get('restaurantId'));
 if (!restaurantId) window.location.href = 'restaurants.html';
@@ -145,9 +147,7 @@ if (!restaurantId) window.location.href = 'restaurants.html';
 let cart = {}; // { itemId: { id, name, price, qty } }
 let allItems = [];
 
-// Pre-fill customer ID from logged-in user
-const user = getUser();
-if (user) document.getElementById('customer-id').value = user.id || '';
+
 
 async function loadRestaurant() {
   try {
@@ -172,7 +172,7 @@ async function loadMenu() {
       return;
     }
     allItems = data.data;
-    const categories = [...new Set(allItems.map(i => i.category?.name || 'Menu'))];
+    const categories = [...new Set(allItems.map(i => i.categoryName || 'Menu'))];
 
     const catDiv = document.getElementById('cat-tabs');
     catDiv.innerHTML = ['All', ...categories].map((c, i) =>
@@ -188,14 +188,14 @@ async function loadMenu() {
 function filterCat(cat, btn) {
   document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
   btn.classList.add('active');
-  renderItems(cat === 'All' ? allItems : allItems.filter(i => (i.category?.name || 'Menu') === cat));
+  renderItems(cat === 'All' ? allItems : allItems.filter(i => (i.categoryName || 'Menu') === cat));
 }
 
 function renderItems(items) {
   document.getElementById('menu-items').innerHTML = items.map(item => `
     <div class="menu-item" id="item-${item.id}">
       <div class="mi-info">
-        <div class="mi-name">${item.name}${!item.available ? '<span class="mi-unavail">(Unavailable)</span>' : ''}</div>
+      <div class="mi-name">${item.name}${item.available === false ? '<span class="mi-unavail">(Unavailable)</span>' : ''}</div>
         ${item.description ? `<div class="mi-desc">${item.description}</div>` : ''}
         <div class="mi-price">₹${item.price}</div>
       </div>
@@ -206,15 +206,15 @@ function renderItems(items) {
 }
 
 function renderCtrl(item) {
-  const qty = cart[item.id]?.qty || 0;
-  if (qty === 0) {
-    return `<button class="add-btn" onclick="addItem(${item.id},'${escStr(item.name)}',${item.price})" ${!item.available ? 'disabled' : ''}>Add +</button>`;
-  }
-  return `
-    <button class="qty-btn" onclick="changeQty(${item.id},-1)">−</button>
-    <span class="qty-num">${qty}</span>
-    <button class="qty-btn" onclick="changeQty(${item.id},1)">+</button>`;
-}
+	  const qty = cart[item.id]?.qty || 0;
+	  if (qty === 0) {
+	    return `<button class="add-btn" onclick="addItem(${item.id},'${escStr(item.name)}',${item.price})" ${item.available === false ? 'disabled' : ''}>Add +</button>`;
+	  }
+	  return `
+	    <button class="qty-btn" onclick="changeQty(${item.id},-1)">−</button>
+	    <span class="qty-num">${qty}</span>
+	    <button class="qty-btn" onclick="changeQty(${item.id},1)">+</button>`;
+	}
 
 function escStr(s) { return s.replace(/'/g, "\\'"); }
 

@@ -98,83 +98,94 @@ body { display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh; }
 </div>
 
 <script src="shared.js"></script>
-<script>
-// Redirect if already logged in
-if (getUser()) window.location.href = 'index.html';
+<script>// ─── Replace the entire <script> block in login.html with this ───────────────
+
+//Redirect if already logged in
+if (getUser()) {
+const user = getUser();
+if (user.role === 'RESTAURANT_ADMIN' || user.role === 'ADMIN') {
+ window.location.href = 'admin.html';
+} else {
+ window.location.href = 'restaurants.html';
+}
+}
 
 function togglePw(id) {
-  const inp = document.getElementById(id);
-  inp.type = inp.type === 'password' ? 'text' : 'password';
+const inp = document.getElementById(id);
+inp.type = inp.type === 'password' ? 'text' : 'password';
 }
 
 function showAlert(id, msg, type) {
-  const el = document.getElementById(id);
-  el.textContent = msg;
-  el.className = 'alert show alert-' + type;
+const el = document.getElementById(id);
+el.textContent = msg;
+el.className = 'alert show alert-' + type;
 }
 
 function setLoading(btnId, loading, text) {
-  const btn = document.getElementById(btnId);
-  btn.disabled = loading;
-  btn.innerHTML = loading ? '<span class="spinner" style="width:18px;height:18px;border-width:2px"></span>' : text;
+const btn = document.getElementById(btnId);
+btn.disabled = loading;
+btn.innerHTML = loading
+ ? '<span class="spinner" style="width:18px;height:18px;border-width:2px"></span>'
+ : text;
 }
 
 async function doLogin() {
-	  const email = document.getElementById('l-email').value.trim();
-	  const password = document.getElementById('l-password').value;
+const email    = document.getElementById('l-email').value.trim();
+const password = document.getElementById('l-password').value;
 
-	  if (!email || !password) { showAlert('login-alert', 'Please fill in all fields', 'error'); return; }
-	  if (!email.includes('@')) { showAlert('login-alert', 'Please enter a valid email', 'error'); return; }
+// ── Basic validation ──────────────────────────────────────────────────────
+if (!email || !password) {
+ showAlert('login-alert', 'Please fill in all fields.', 'error');
+ return;
+}
+if (!email.includes('@')) {
+ showAlert('login-alert', 'Please enter a valid email.', 'error');
+ return;
+}
 
-	  setLoading('login-btn', true, 'Sign In');
-	  try {
-	    const formData = new URLSearchParams();
-	    formData.append('email', email);
-	    formData.append('password', password);
+setLoading('login-btn', true, 'Sign In');
 
-	    const loginRes = await fetch('http://localhost:8080/perform_login', {
-	      method: 'POST',
-	      credentials: 'include',
-	      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-	      body: formData
-	    });
+try {
+ // ── Single REST call to /api/auth/login ───────────────────────────────
+ const res = await fetch('http://localhost:8080/api/auth/login', {
+   method: 'POST',
+   headers: { 'Content-Type': 'application/json' },
+   body: JSON.stringify({ email, password })
+ });
 
-	    console.log('status:', loginRes.status, 'redirected:', loginRes.redirected, 'url:', loginRes.url);
+ const data = await res.json();
 
-	    // If Spring redirected to failureUrl, login failed
-	    if (loginRes.url.includes('error=true')) {
-	      showAlert('login-alert', 'Invalid email or password.', 'error');
-	      setLoading('login-btn', false, 'Sign In');
-	      return;
-	    }
+ if (data.success) {
+   // Save user to localStorage
+   setUser(data.data);
 
-	    // Login succeeded — fetch user via your existing /user/login REST endpoint
-	    const { ok, data } = await api('POST', '/user/login', { email, password });
-	    if (ok) {
-	      setUser(data.data);
-	      showAlert('login-alert', '✓ Login successful! Redirecting...', 'success');
-	      setTimeout(() => {
-	        const user = data.data;
-	        if (user.role === 'RESTAURANT_ADMIN' || user.role === 'ADMIN') window.location.href = 'admin.html';
-	        else window.location.href = 'restaurants.html';
-	      }, 800);
-	    } else {
-	      showAlert('login-alert', data.message || 'Login failed.', 'error');
-	      setLoading('login-btn', false, 'Sign In');
-	    }
-	  } catch(err) {
-	    console.error(err);
-	    showAlert('login-alert', 'Cannot connect to server.', 'error');
-	    setLoading('login-btn', false, 'Sign In');
-	  }
-	}
+   showAlert('login-alert', '✓ Login successful! Redirecting...', 'success');
 
+   setTimeout(() => {
+     const role = data.data.role;
+     if (role === 'RESTAURANT_ADMIN' || role === 'ADMIN') {
+       window.location.href = 'admin.html';
+     } else {
+       window.location.href = 'restaurants.html';
+     }
+   }, 600);
 
-// Allow Enter key to submit
+ } else {
+   // Server returned success:false with a specific message
+   showAlert('login-alert', data.message || 'Login failed.', 'error');
+   setLoading('login-btn', false, 'Sign In');
+ }
+
+} catch (err) {
+ console.error('Login error:', err);
+ showAlert('login-alert', 'Cannot connect to server. Is the backend running?', 'error');
+ setLoading('login-btn', false, 'Sign In');
+}
+}
+
+//Allow Enter key to submit
 document.addEventListener('keydown', e => {
-  if (e.key === 'Enter') {
-    doLogin();
-  }
+if (e.key === 'Enter') doLogin();
 });
 </script>
 </body>

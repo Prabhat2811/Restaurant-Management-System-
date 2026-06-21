@@ -149,7 +149,6 @@ input:focus,select:focus{border-color:var(--amber)}
 <script src="shared.js"></script>
 
 <script>
-const BASE = 'http://localhost:8080';
 
 function switchTab(tab) {
   document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', (i===0&&tab==='register')||(i===1&&tab==='login')));
@@ -165,23 +164,44 @@ function showResponse(id, msg, type) {
 }
 
 async function register() {
-  const name = document.getElementById('reg-fname').value + ' ' + document.getElementById('reg-lname').value;
-  const body = {
-    name: name.trim(),
-    email: document.getElementById('reg-email').value,
-    phone: document.getElementById('reg-phone').value,
-    password: document.getElementById('reg-password').value,
-    role: document.getElementById('reg-role').value
-  };
-  try {
-    const res = await fetch(`${BASE}/user/register`, {
-      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)
-    });
-    const data = await res.json();
-    if (res.ok) showResponse('reg-response', '✓ Account created! You can now login.', 'success');
-    else showResponse('reg-response', data.message || 'Registration failed', 'error');
-  } catch(e) { showResponse('reg-response', 'Cannot connect to server. Is the backend running?', 'error'); }
-}
+	  const fname = document.getElementById('reg-fname').value.trim();
+	  const lname = document.getElementById('reg-lname').value.trim();
+	  const email = document.getElementById('reg-email').value.trim();
+	  const phone = document.getElementById('reg-phone').value.trim();
+	  const password = document.getElementById('reg-password').value;
+
+	  // Validation
+	  if (!fname || !lname) { showResponse('reg-response', 'Please enter your full name.', 'error'); return; }
+	  if (!email || !email.includes('@')) { showResponse('reg-response', 'Please enter a valid email.', 'error'); return; }
+	  if (!phone || phone.length < 10) { showResponse('reg-response', 'Please enter a valid phone number.', 'error'); return; }
+	  if (!password || password.length < 6) { showResponse('reg-response', 'Password must be at least 6 characters.', 'error'); return; }
+
+	  const body = {
+	    name: fname + ' ' + lname,
+	    email: email,
+	    phone: phone,
+	    password: password,
+	    role: 'CUSTOMER'   // hardcoded — role field has no id anyway
+	  };
+
+	  try {
+	    const res = await fetch(`${BASE}/api/auth/register`, {   // ← fixed endpoint
+	      method: 'POST',
+	      headers: { 'Content-Type': 'application/json' },
+	      body: JSON.stringify(body)
+	    });
+	    const data = await res.json();
+
+	    if (data.success) {
+	      showResponse('reg-response', '✓ Account created! Redirecting to login...', 'success');
+	      setTimeout(() => window.location.href = 'login.html', 1500);
+	    } else {
+	      showResponse('reg-response', data.message || 'Registration failed.', 'error');
+	    }
+	  } catch(e) {
+	    showResponse('reg-response', 'Cannot connect to server.', 'error');
+	  }
+	}
 
 
 </script>

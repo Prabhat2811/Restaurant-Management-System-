@@ -252,123 +252,55 @@ input:focus{
 
 const BASE = "http://localhost:8080";
 
-function showResponse(message,type){
-
-    const box =
-        document.getElementById("admin-response");
-
+function showResponse(message, type) {
+    const box = document.getElementById("admin-response");
     box.style.display = "block";
     box.className = "response-box " + type;
     box.innerHTML = message;
 }
 
-async function adminLogin(){
+async function adminLogin() {
+    const email = document.getElementById("admin-email").value.trim();
+    const password = document.getElementById("admin-password").value;
 
-    const email =
-        document.getElementById("admin-email")
-        .value
-        .trim();
-
-    const password =
-        document.getElementById("admin-password")
-        .value;
-
-    if(!email || !password){
-
-        showResponse(
-            "Please enter email and password",
-            "error"
-        );
-
+    if (!email || !password) {
+        showResponse("Please enter email and password", "error");
         return;
     }
 
-    try{
+    try {
+        // ← fixed endpoint
+        const response = await fetch(BASE + "/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password })
+        });
 
-        const response =
-            await fetch(
-                BASE + "/user/login",
-                {
-                    method:"POST",
-                    headers:{
-                        "Content-Type":"application/json"
-                    },
-                    body:JSON.stringify({
-                        email,
-                        password
-                    })
-                }
-            );
+        const result = await response.json();
 
-        const result =
-            await response.json();
-
-        if(!response.ok){
-
-            showResponse(
-                result.message ||
-                "Invalid credentials",
-                "error"
-            );
-
+        if (!result.success) {
+            showResponse(result.message || "Invalid credentials", "error");
             return;
         }
 
-        const user =
-            result.data;
+        const user = result.data;
 
-        if(
-            user.role !== "ADMIN" &&
-            user.role !== "RESTAURANT_ADMIN"
-        ){
-
-            showResponse(
-                "Access denied. Admin privileges required.",
-                "error"
-            );
-
+        if (user.role !== "ADMIN" && user.role !== "RESTAURANT_ADMIN") {
+            showResponse("Access denied. Admin privileges required.", "error");
             return;
         }
 
-        localStorage.setItem(
-            "savor_user",
-            JSON.stringify(user)
-        );
+        localStorage.setItem("savor_user", JSON.stringify(user));
+        showResponse("✓ Login successful. Redirecting...", "success");
+        setTimeout(() => window.location.href = "admin.html", 1000);
 
-        showResponse(
-            "✓ Login successful. Redirecting...",
-            "success"
-        );
-
-        setTimeout(()=>{
-
-            window.location.href =
-                "admin.html";
-
-        },1000);
-
-    }
-    catch(error){
-
+    } catch (error) {
         console.error(error);
-
-        showResponse(
-            "Cannot connect to backend server.",
-            "error"
-        );
+        showResponse("Cannot connect to backend server.", "error");
     }
 }
 
-document.addEventListener(
-    "keydown",
-    function(e){
-
-        if(e.key==="Enter"){
-
-            adminLogin();
-        }
-    }
-);
+document.addEventListener("keydown", e => { if (e.key === "Enter") adminLogin(); });
 
 </script>
 
