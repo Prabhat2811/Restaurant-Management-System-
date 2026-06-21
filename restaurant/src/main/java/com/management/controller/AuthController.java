@@ -149,7 +149,7 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
     
-    @PostMapping("/setup-admin")
+    @GetMapping("/setup-admin")
     public ResponseEntity<Map<String, Object>> setupAdmin() {
         Map<String, Object> response = new HashMap<>();
 
@@ -161,15 +161,15 @@ public class AuthController {
         }
 
         User admin = new User();
-        admin.setName("Super Admin");
-        admin.setEmail("admin@savor.com");
-        admin.setPassword(passwordEncoder.encode("Admin@1234"));
-        admin.setPhone("9999999999");
+        admin.setName("Prabhat Ranjan");
+        admin.setEmail("ranjanprabhat.c@gmail.com");
+        admin.setPassword(passwordEncoder.encode("Prabhat@123"));
+        admin.setPhone("9693711738");
         admin.setRole(Role.ADMIN);
         userRepository.save(admin);
 
         response.put("success", true);
-        response.put("message", "Admin created. Email: admin@savor.com | Password: Admin@1234");
+        response.put("message", "Admin created. Email: ranjanprabhat.c.com | Password: Prabhat@123");
         return ResponseEntity.ok(response);
     }
 }

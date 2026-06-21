@@ -426,34 +426,67 @@ function filterOrders() {
   const f = document.getElementById('ord-status-filter').value;
   renderOrders(f ? allOrders.filter(o => o.status === f) : allOrders);
 }
+
+
 function renderOrders(orders) {
-  const tb = document.getElementById('orders-tbody');
-  if (!orders.length) { tb.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--warm-gray);padding:1.5rem">No orders found</td></tr>'; return; }
-  tb.innerHTML = orders.map(o => `<tr>
-    <td>#${o.id}</td>
-    <td>${o.customer?.user?.name || 'Customer #' + o.customer?.id}</td>
-    <td>${o.restaurant?.name || '#' + o.restaurant?.id}</td>
-    <td>${(o.orderItems || []).length} items</td>
-    <td style="color:var(--amber);font-weight:600">₹${o.totalAmount || 0}</td>
-    <td><span class="badge badge-amber" style="font-size:0.7rem">${o.payment?.paymentMethod || '—'}</span></td>
-    <td>${sb(o.status)}</td>
-    <td style="display:flex;gap:0.4rem;align-items:center">
-      <select id="os-${o.id}" style="font-size:0.75rem;padding:0.25rem 0.4rem;border:1px solid var(--border);border-radius:2px;outline:none">
-        <option value="">Change...</option>
-        ${['CONFIRMED','PREPARING','READY','OUT_FOR_DELIVERY','DELIVERED','CANCELLED'].map(s=>`<option>${s}</option>`).join('')}
-      </select>
-      <button onclick="updateOrderStatus(${o.id})" class="btn btn-primary" style="padding:0.25rem 0.6rem;font-size:0.75rem">Go</button>
-      ${o.status === 'READY' ? `<button onclick="openModal('assignAgent',${o.id})" class="btn btn-dark" style="padding:0.25rem 0.6rem;font-size:0.75rem">Assign Agent</button>` : ''}
-    </td>
-  </tr>`).join('');
-}
-async function updateOrderStatus(orderId) {
-  const status = document.getElementById('os-' + orderId).value;
-  if (!status) { showToast('Select a status', 'warning'); return; }
-  const { ok, data } = await api('PUT', `/order/status/${orderId}?status=${status}`);
-  if (ok) { showToast('✓ Status updated to ' + status, 'success'); loadOrders(); }
-  else showToast(data.message || 'Failed', 'error');
-}
+	  const tb = document.getElementById('orders-tbody');
+	  if (!orders.length) {
+	    tb.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--warm-gray);padding:1.5rem">No orders found</td></tr>';
+	    return;
+	  }
+	  tb.innerHTML = orders.map(o => {
+	    const hasAgent = o.deliveryAgent != null;
+	    const needsAgent = o.status === 'READY' || o.status === 'OUT_FOR_DELIVERY';
+	    return `<tr>
+	      <td>#${o.id}</td>
+	      <td>${o.customer?.user?.name || 'Customer #' + o.customer?.id}</td>
+	      <td>${o.restaurant?.name || '#' + o.restaurant?.id}</td>
+	      <td>${(o.orderItems || []).length} items</td>
+	      <td style="color:var(--amber);font-weight:600">₹${o.totalAmount || 0}</td>
+	      <td><span class="badge badge-amber" style="font-size:0.7rem">${o.payment?.paymentMethod || '—'}</span></td>
+	      <td>${sb(o.status)}</td>
+	      <td style="display:flex;gap:0.4rem;align-items:center;flex-wrap:wrap">
+	        <select id="os-${o.id}" style="font-size:0.75rem;padding:0.25rem 0.4rem;border:1px solid var(--border);border-radius:2px;outline:none">
+	          <option value="">Change...</option>
+	          ${['CONFIRMED','PREPARING','READY','OUT_FOR_DELIVERY','DELIVERED','CANCELLED'].map(s=>`<option>${s}</option>`).join('')}
+	        </select>
+	        <button onclick="updateOrderStatus(${o.id},'${o.status}')" class="btn btn-primary" style="padding:0.25rem 0.6rem;font-size:0.75rem">Go</button>
+	        ${needsAgent && !hasAgent
+	          ? `<button onclick="openModal('assignAgent',${o.id})" class="btn btn-dark" style="padding:0.25rem 0.6rem;font-size:0.75rem">Assign Agent</button>`
+	          : hasAgent
+	            ? `<span style="font-size:0.7rem;color:var(--warm-gray)">🛵 ${o.deliveryAgent?.user?.name || 'Agent #' + o.deliveryAgent?.id}</span>`
+	            : ''
+	        }
+	      </td>
+	    </tr>`;
+	  }).join('');
+	}
+
+	async function updateOrderStatus(orderId, currentStatus) {
+	  const status = document.getElementById('os-' + orderId).value;
+	  if (!status) { showToast('Select a status', 'warning'); return; }
+
+	  // Find the order to check agent assignment
+	  const order = allOrders.find(o => o.id === orderId);
+	  const hasAgent = order?.deliveryAgent != null;
+
+	  // Block OUT_FOR_DELIVERY if no agent assigned
+	  if (status === 'OUT_FOR_DELIVERY' && !hasAgent) {
+	    showToast('Assign a delivery agent before marking Out for Delivery', 'warning');
+	    openModal('assignAgent', orderId);
+	    return;
+	  }
+
+	  // Block DELIVERED if no agent assigned
+	  if (status === 'DELIVERED' && !hasAgent) {
+	    showToast('No delivery agent assigned for this order', 'warning');
+	    return;
+	  }
+
+	  const { ok, data } = await api('PUT', `/order/status/${orderId}?status=${status}`);
+	  if (ok) { showToast('✓ Status updated to ' + status, 'success'); loadOrders(); }
+	  else showToast(data.message || 'Failed', 'error');
+	}
 
 // ---- RESTAURANTS ----
 async function loadRestaurants() {
