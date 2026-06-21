@@ -94,7 +94,6 @@ A full-stack food ordering platform built with **Spring Boot** and **Vanilla HTM
 - Role-based access: `CUSTOMER`, `ADMIN`
 - Registration creates both `User` + `Customer` rows atomically
 - `localStorage` stores `customer.id` (not `user.id`) for downstream order operations
-- Admin bootstrap endpoint: `POST /api/auth/setup-admin`
 - BCrypt password hashing throughout
 
 ### 🏪 Restaurant Management (Admin)
