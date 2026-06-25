@@ -218,11 +218,22 @@ nav {
 .total-row { display: flex; justify-content: space-between; font-size: 0.83rem; margin-bottom: 0.35rem; }
 .total-row.grand { font-family: var(--fd); font-size: 1.1rem; font-weight: 700; color: var(--amber); margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px dashed var(--border); }
 .cart-checkout { padding: 1rem 1.2rem; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 0.7rem; }
-.cart-checkout select, .cart-checkout input {
+.cart-checkout select {
   width: 100%; padding: 0.6rem 0.8rem; border: 1.5px solid var(--border); border-radius: 4px;
   font-family: var(--fb); font-size: 0.85rem; outline: none; transition: border-color 0.2s;
 }
-.cart-checkout select:focus, .cart-checkout input:focus { border-color: var(--amber); }
+.cart-checkout select:focus { border-color: var(--amber); }
+
+/* ── Login prompt inside cart ── */
+.cart-login-prompt {
+  padding: 1rem 1.2rem; border-top: 1px solid var(--border);
+  text-align: center;
+}
+.cart-login-prompt p {
+  font-size: 0.82rem; color: var(--warm-gray); margin-bottom: 0.75rem; line-height: 1.5;
+}
+.cart-login-prompt .lock-icon { font-size: 1.6rem; margin-bottom: 0.4rem; }
+
 .alert { padding: 0.65rem 0.9rem; border-radius: 4px; font-size: 0.82rem; display: none; }
 .alert.show { display: block; }
 .alert-success { background: #F0FDF4; border: 1px solid #BBF7D0; color: #166534; }
@@ -350,8 +361,9 @@ nav {
       <div class="total-row"><span>Taxes (5%)</span><span id="t-tax">₹0</span></div>
       <div class="total-row grand"><span>Total</span><span id="t-grand">₹40</span></div>
     </div>
+
+    <!-- Shown when logged in and cart has items -->
     <div class="cart-checkout" id="cart-checkout" style="display:none">
-      <input type="number" id="customer-id" placeholder="Enter your Customer ID" min="1">
       <select id="payment-method">
         <option value="UPI">UPI</option>
         <option value="CREDIT_CARD">Credit Card</option>
@@ -362,6 +374,14 @@ nav {
       <button class="btn btn-primary btn-full" id="place-btn" onclick="placeOrder()">Place Order →</button>
       <div class="alert" id="order-alert"></div>
     </div>
+
+    <!-- Shown when NOT logged in and cart has items -->
+    <div class="cart-login-prompt" id="cart-login-prompt" style="display:none">
+      <div class="lock-icon">🔒</div>
+      <p>Please sign in to place your order</p>
+      <button class="btn btn-dark btn-full" onclick="saveCartAndRedirectToLogin()">Sign In to Order</button>
+    </div>
+
     <div class="order-success" id="order-success">
       <div class="os-icon">🎉</div>
       <div class="os-title">Order Placed!</div>
@@ -396,11 +416,12 @@ const foodEmojis = ['🍛','🍜','🍕','🥘','🍱','🌮','🍣','🥗','�
 // ── Auth ──
 function getUser() { try { return JSON.parse(localStorage.getItem('savor_user')); } catch { return null; } }
 const user = getUser();
+const isLoggedIn = !!(user && user.id);
+
 const navUser = document.getElementById('nav-user');
-if (user) {
+if (isLoggedIn) {
   navUser.innerHTML = `<span style="font-size:0.82rem;color:var(--warm-gray);margin-right:0.5rem">Hi, ${user.name?.split(' ')[0]}</span>
     <button onclick="localStorage.clear();window.location.href='login.html'" style="padding:0.35rem 0.8rem;border:1.5px solid rgba(200,118,42,0.3);border-radius:3px;background:transparent;color:var(--amber);cursor:pointer;font-size:0.78rem;font-family:'DM Sans',sans-serif">Logout</button>`;
-  document.getElementById('customer-id').value = user.id || '';
 } else {
   navUser.innerHTML = `<a href="login.html" class="btn btn-dark btn-sm">Sign In</a>`;
 }
@@ -636,12 +657,14 @@ function updateCart() {
   const body = document.getElementById('cart-body');
   const totals = document.getElementById('cart-totals');
   const checkout = document.getElementById('cart-checkout');
+  const loginPrompt = document.getElementById('cart-login-prompt');
   const restName = document.getElementById('cart-rest-name');
 
   if (!items.length) {
     body.innerHTML = `<div class="cart-empty-msg"><div class="ce-icon">🛒</div><div>Add items from the menu</div></div>`;
     totals.style.display = 'none';
     checkout.style.display = 'none';
+    loginPrompt.style.display = 'none';
     restName.style.display = 'none';
     return;
   }
@@ -659,21 +682,48 @@ function updateCart() {
   document.getElementById('t-grand').textContent = '₹' + grand;
 
   totals.style.display = 'block';
-  checkout.style.display = 'flex';
   restName.style.display = 'block';
+
+  // Show checkout or login prompt based on auth state
+  if (isLoggedIn) {
+    checkout.style.display = 'flex';
+    loginPrompt.style.display = 'none';
+  } else {
+    checkout.style.display = 'none';
+    loginPrompt.style.display = 'block';
+  }
+}
+
+// ── Save cart to sessionStorage and redirect to login ──
+function saveCartAndRedirectToLogin() {
+  sessionStorage.setItem('savor_pending_cart', JSON.stringify(cart));
+  sessionStorage.setItem('savor_redirect_after_login', window.location.href);
+  window.location.href = 'login.html';
+}
+
+// ── Restore cart saved before login redirect ──
+function restorePendingCart() {
+  const saved = sessionStorage.getItem('savor_pending_cart');
+  if (!saved) return;
+  try {
+    const savedCart = JSON.parse(saved);
+    Object.assign(cart, savedCart);
+    sessionStorage.removeItem('savor_pending_cart');
+  } catch {}
 }
 
 // ── Place Order ──
 async function placeOrder() {
-  const customerId = parseInt(document.getElementById('customer-id').value);
+  // Guard: must be logged in
+  if (!isLoggedIn || !user?.id) {
+    saveCartAndRedirectToLogin();
+    return;
+  }
+
   const paymentMethod = document.getElementById('payment-method').value;
   const alertEl = document.getElementById('order-alert');
   const items = Object.values(cart);
 
-  if (!customerId || customerId < 1) {
-    alertEl.textContent = 'Please enter a valid Customer ID';
-    alertEl.className = 'alert show alert-error'; return;
-  }
   if (!items.length) {
     alertEl.textContent = 'Your cart is empty';
     alertEl.className = 'alert show alert-error'; return;
@@ -684,7 +734,7 @@ async function placeOrder() {
   btn.innerHTML = '<span style="display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,0.4);border-top-color:white;border-radius:50%;animation:spin 0.8s linear infinite"></span> Placing...';
 
   const body = {
-    customerId,
+    customerId: user.id,   // always from localStorage — no manual input
     restaurantId,
     paymentMethod,
     items: items.map(i => ({ menuItemId: i.id, quantity: i.qty }))
@@ -726,6 +776,7 @@ function resetCart() {
   document.getElementById('cart-rest-name').style.display = 'none';
   document.getElementById('order-success').style.display = 'none';
   document.getElementById('cart-checkout').style.display = 'none';
+  document.getElementById('cart-login-prompt').style.display = 'none';
   document.getElementById('cart-totals').style.display = 'none';
   document.getElementById('order-alert').className = 'alert';
   document.getElementById('place-btn').disabled = false;
@@ -763,7 +814,9 @@ window.addEventListener('scroll', () => {
 (async () => {
   await loadRestaurant();
   await loadCategories();
-  await loadMenu();
+  restorePendingCart();   // merge any cart saved before login redirect
+  await loadMenu();       // loadMenu calls renderMenu which reads cart state
+  updateCart();           // reflect restored items in the cart panel
 })();
 </script>
 </body>

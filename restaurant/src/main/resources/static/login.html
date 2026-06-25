@@ -30,6 +30,15 @@ body { display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh; }
 .pw-wrap { position: relative; }
 .pw-wrap input { padding-right: 2.8rem; }
 .pw-toggle { position: absolute; right: 0.9rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--warm-gray); font-size: 1rem; }
+
+/* Returning-to-cart notice */
+.cart-notice {
+  display: none;
+  background: rgba(200,118,42,0.08); border: 1.5px solid rgba(200,118,42,0.25);
+  border-radius: 4px; padding: 0.7rem 1rem; margin-bottom: 1.2rem;
+  font-size: 0.83rem; color: var(--dark); display: flex; align-items: center; gap: 0.6rem;
+}
+.cart-notice.show { display: flex; }
 </style>
 </head>
 <body>
@@ -55,13 +64,17 @@ body { display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh; }
     <a href="index.html" class="back-link">← Back to Home</a>
 
     <div class="tabs">
-  <div class="tab active">Sign In</div>
-  <div class="tab">
-    <a href="register.html" style="text-decoration:none;color:inherit">
-      Create Account
-    </a>
-  </div>
-</div>
+      <div class="tab active">Sign In</div>
+      <div class="tab">
+        <a href="register.html" style="text-decoration:none;color:inherit">Create Account</a>
+      </div>
+    </div>
+
+    <!-- Cart-restore notice (shown when user came from menu/order page) -->
+    <div class="cart-notice" id="cart-notice">
+      🛒 <span id="cart-notice-text">Sign in to continue placing your order</span>
+    </div>
+
     <!-- LOGIN PANEL -->
     <div class="tab-panel active" id="panel-login">
       <div class="form-title">Welcome back</div>
@@ -84,108 +97,123 @@ body { display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh; }
 
       <div class="divider">or</div>
       <div style="text-align:center;font-size:0.85rem;color:var(--warm-gray)">
-		New here?
-<a href="register.html"
-   style="color:var(--amber);text-decoration:none;font-weight:500">
-   Create account
-</a>
+        New here?
+        <a href="register.html" style="color:var(--amber);text-decoration:none;font-weight:500">Create account</a>
       </div>
     </div>
-
-    
-
   </div>
 </div>
 
 <script src="shared.js"></script>
-<script>// ─── Replace the entire <script> block in login.html with this ───────────────
-
-//Redirect if already logged in
+<script>
+// ── Redirect if already logged in ──
 if (getUser()) {
-const user = getUser();
-if (user.role === 'RESTAURANT_ADMIN' || user.role === 'ADMIN') {
- window.location.href = 'admin.html';
-} else {
- window.location.href = 'restaurants.html';
+  const user = getUser();
+  const pendingRedirect = sessionStorage.getItem('savor_redirect_after_login');
+  if (pendingRedirect) {
+    window.location.href = pendingRedirect;
+  } else if (user.role === 'RESTAURANT_ADMIN' || user.role === 'ADMIN') {
+    window.location.href = 'admin.html';
+  } else {
+    window.location.href = 'restaurants.html';
+  }
 }
-}
+
+// ── Show cart-restore notice if we have a pending cart ──
+(function() {
+  const pendingCart = sessionStorage.getItem('savor_pending_cart');
+  const pendingRedirect = sessionStorage.getItem('savor_redirect_after_login');
+  if (pendingCart && pendingRedirect) {
+    try {
+      const cart = JSON.parse(pendingCart);
+      const itemCount = Object.values(cart).reduce((s, i) => s + i.qty, 0);
+      if (itemCount > 0) {
+        const notice = document.getElementById('cart-notice');
+        document.getElementById('cart-notice-text').textContent =
+          `You have ${itemCount} item${itemCount > 1 ? 's' : ''} in your cart — sign in to complete your order`;
+        notice.classList.add('show');
+      }
+    } catch {}
+  }
+})();
 
 function togglePw(id) {
-const inp = document.getElementById(id);
-inp.type = inp.type === 'password' ? 'text' : 'password';
+  const inp = document.getElementById(id);
+  inp.type = inp.type === 'password' ? 'text' : 'password';
 }
 
 function showAlert(id, msg, type) {
-const el = document.getElementById(id);
-el.textContent = msg;
-el.className = 'alert show alert-' + type;
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.className = 'alert show alert-' + type;
 }
 
 function setLoading(btnId, loading, text) {
-const btn = document.getElementById(btnId);
-btn.disabled = loading;
-btn.innerHTML = loading
- ? '<span class="spinner" style="width:18px;height:18px;border-width:2px"></span>'
- : text;
+  const btn = document.getElementById(btnId);
+  btn.disabled = loading;
+  btn.innerHTML = loading
+    ? '<span class="spinner" style="width:18px;height:18px;border-width:2px"></span>'
+    : text;
 }
 
 async function doLogin() {
-const email    = document.getElementById('l-email').value.trim();
-const password = document.getElementById('l-password').value;
+  const email    = document.getElementById('l-email').value.trim();
+  const password = document.getElementById('l-password').value;
 
-// ── Basic validation ──────────────────────────────────────────────────────
-if (!email || !password) {
- showAlert('login-alert', 'Please fill in all fields.', 'error');
- return;
+  if (!email || !password) {
+    showAlert('login-alert', 'Please fill in all fields.', 'error'); return;
+  }
+  if (!email.includes('@')) {
+    showAlert('login-alert', 'Please enter a valid email.', 'error'); return;
+  }
+
+  setLoading('login-btn', true, 'Sign In');
+
+  try {
+    const res = await fetch('http://localhost:8080/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      setUser(data.data);
+      showAlert('login-alert', '✓ Login successful! Redirecting...', 'success');
+
+      setTimeout(() => {
+        const role = data.data.role;
+        // Check for a pending redirect (came from menu/order page)
+        const pendingRedirect = sessionStorage.getItem('savor_redirect_after_login');
+        sessionStorage.removeItem('savor_redirect_after_login');
+        // Note: savor_pending_cart stays — menu/order.html will consume it
+
+        if (pendingRedirect) {
+          // Go back to the exact page they were on (cart will be restored there)
+          window.location.href = pendingRedirect;
+        } else if (role === 'RESTAURANT_ADMIN' || role === 'ADMIN') {
+          window.location.href = 'admin.html';
+        } else {
+          window.location.href = 'restaurants.html';
+        }
+      }, 600);
+
+    } else {
+      showAlert('login-alert', data.message || 'Login failed.', 'error');
+      setLoading('login-btn', false, 'Sign In');
+    }
+
+  } catch (err) {
+    console.error('Login error:', err);
+    showAlert('login-alert', 'Cannot connect to server. Is the backend running?', 'error');
+    setLoading('login-btn', false, 'Sign In');
+  }
 }
-if (!email.includes('@')) {
- showAlert('login-alert', 'Please enter a valid email.', 'error');
- return;
-}
 
-setLoading('login-btn', true, 'Sign In');
-
-try {
- // ── Single REST call to /api/auth/login ───────────────────────────────
- const res = await fetch('http://localhost:8080/api/auth/login', {
-   method: 'POST',
-   headers: { 'Content-Type': 'application/json' },
-   body: JSON.stringify({ email, password })
- });
-
- const data = await res.json();
-
- if (data.success) {
-   // Save user to localStorage
-   setUser(data.data);
-
-   showAlert('login-alert', '✓ Login successful! Redirecting...', 'success');
-
-   setTimeout(() => {
-     const role = data.data.role;
-     if (role === 'RESTAURANT_ADMIN' || role === 'ADMIN') {
-       window.location.href = 'admin.html';
-     } else {
-       window.location.href = 'restaurants.html';
-     }
-   }, 600);
-
- } else {
-   // Server returned success:false with a specific message
-   showAlert('login-alert', data.message || 'Login failed.', 'error');
-   setLoading('login-btn', false, 'Sign In');
- }
-
-} catch (err) {
- console.error('Login error:', err);
- showAlert('login-alert', 'Cannot connect to server. Is the backend running?', 'error');
- setLoading('login-btn', false, 'Sign In');
-}
-}
-
-//Allow Enter key to submit
+// Allow Enter key to submit
 document.addEventListener('keydown', e => {
-if (e.key === 'Enter') doLogin();
+  if (e.key === 'Enter') doLogin();
 });
 </script>
 </body>

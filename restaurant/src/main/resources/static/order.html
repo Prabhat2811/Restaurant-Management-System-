@@ -32,28 +32,56 @@
 .add-btn { padding: 0.38rem 0.9rem; background: rgba(200,118,42,0.1); color: var(--amber); border: 1.5px solid rgba(200,118,42,0.3); border-radius: 3px; cursor: pointer; font-size: 0.82rem; font-weight: 500; font-family: var(--font-body); transition: all 0.2s; white-space: nowrap; }
 .add-btn:hover { background: var(--amber); color: white; border-color: var(--amber); }
 .add-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-/* Cart panel */
-.cart-panel { background: white; border-radius: 6px; border: 1px solid rgba(200,118,42,0.15); padding: 1.5rem; position: sticky; top: 80px; }
-.cart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; }
-.cart-title { font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; }
-.cart-badge { background: var(--amber); color: white; width: 22px; height: 22px; border-radius: 50%; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; font-weight: 700; }
-.cart-body { min-height: 80px; max-height: 260px; overflow-y: auto; margin-bottom: 1rem; }
-.cart-item-row { display: flex; justify-content: space-between; align-items: center; padding: 0.55rem 0; border-bottom: 1px solid rgba(200,118,42,0.08); font-size: 0.84rem; }
-.cart-item-row:last-child { border-bottom: none; }
-.ci-name { color: var(--dark); flex: 1; }
-.ci-qty { color: var(--warm-gray); margin: 0 0.5rem; font-size: 0.78rem; }
-.ci-price { color: var(--amber); font-weight: 600; }
-.ci-remove { background: none; border: none; cursor: pointer; color: var(--warm-gray); font-size: 0.9rem; margin-left: 0.4rem; }
+
+/* ── Cart panel ── */
+.cart-panel {
+  background: white; border-radius: 6px; border: 1px solid rgba(200,118,42,0.15);
+  position: sticky; top: 80px; overflow: hidden;
+}
+.cart-header {
+  background: var(--dark); padding: 1rem 1.3rem;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.cart-title { font-family: var(--font-display); font-size: 1rem; font-weight: 700; color: white; }
+.cart-badge { background: var(--amber); color: white; width: 24px; height: 24px; border-radius: 50%; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+.cart-restaurant { padding: 0.7rem 1.2rem; background: rgba(200,118,42,0.06); border-bottom: 1px solid var(--border); font-size: 0.78rem; color: var(--warm-gray); }
+.cart-restaurant strong { color: var(--dark); }
+.cart-body { max-height: 280px; overflow-y: auto; padding: 0.5rem 0; }
+.cart-item-row { display: flex; justify-content: space-between; align-items: center; padding: 0.55rem 1.2rem; gap: 0.5rem; }
+.ci-name { font-size: 0.83rem; font-weight: 500; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ci-qty { color: var(--warm-gray); font-size: 0.75rem; flex-shrink: 0; margin: 0 0.3rem; }
+.ci-price { color: var(--amber); font-weight: 600; font-size: 0.85rem; flex-shrink: 0; }
+.ci-remove { background: none; border: none; cursor: pointer; color: var(--warm-gray); font-size: 0.85rem; flex-shrink: 0; transition: color 0.15s; }
 .ci-remove:hover { color: #ef4444; }
-.cart-empty-msg { text-align: center; color: var(--warm-gray); font-size: 0.85rem; padding: 1.5rem 0; }
-.cart-totals { border-top: 1.5px solid var(--border); padding-top: 1rem; margin-bottom: 1.2rem; }
-.total-row { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 0.35rem; }
-.total-row.grand { font-family: var(--font-display); font-size: 1.15rem; font-weight: 700; color: var(--amber); margin-top: 0.5rem; border-top: 1px dashed var(--border); padding-top: 0.5rem; }
+.cart-empty-msg { text-align: center; padding: 2rem 1rem; color: var(--warm-gray); font-size: 0.83rem; }
+.cart-empty-msg .ce-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+.cart-totals { border-top: 1.5px solid var(--border); padding: 1rem 1.2rem; }
+.total-row { display: flex; justify-content: space-between; font-size: 0.83rem; margin-bottom: 0.35rem; }
+.total-row.grand { font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; color: var(--amber); margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px dashed var(--border); }
+
+/* Checkout section (logged in) */
+.cart-checkout { padding: 1rem 1.2rem; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 0.7rem; }
+.cart-checkout select {
+  width: 100%; padding: 0.6rem 0.8rem; border: 1.5px solid var(--border); border-radius: 4px;
+  font-family: var(--font-body); font-size: 0.85rem; outline: none; transition: border-color 0.2s;
+}
+.cart-checkout select:focus { border-color: var(--amber); }
+
+/* Login prompt (not logged in) */
+.cart-login-prompt { padding: 1rem 1.2rem; border-top: 1px solid var(--border); text-align: center; }
+.cart-login-prompt .lock-icon { font-size: 1.6rem; margin-bottom: 0.4rem; }
+.cart-login-prompt p { font-size: 0.82rem; color: var(--warm-gray); margin-bottom: 0.75rem; line-height: 1.5; }
+
+.alert { padding: 0.65rem 0.9rem; border-radius: 4px; font-size: 0.82rem; display: none; }
+.alert.show { display: block; }
+.alert-success { background: #F0FDF4; border: 1px solid #BBF7D0; color: #166534; }
+.alert-error { background: #FEF2F2; border: 1px solid #FECACA; color: #991B1B; }
+
 /* Order success */
-.order-success { display: none; text-align: center; padding: 1.5rem 0; }
-.order-success .success-icon { font-size: 3rem; margin-bottom: 0.8rem; }
-.order-success h3 { font-family: var(--font-display); font-size: 1.3rem; margin-bottom: 0.4rem; color: var(--sage); }
-.order-success p { color: var(--warm-gray); font-size: 0.85rem; }
+.order-success { display: none; padding: 1.5rem; text-align: center; }
+.os-icon { font-size: 2.5rem; margin-bottom: 0.6rem; }
+.os-title { font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; color: #065F46; margin-bottom: 0.3rem; }
+.os-sub { color: var(--warm-gray); font-size: 0.82rem; margin-bottom: 1rem; }
 </style>
 </head>
 <body>
@@ -83,14 +111,21 @@
   </div>
 
   <!-- RIGHT: Cart -->
-  <div class="cart-panel">
+  <div class="cart-panel" id="cart-panel">
     <div class="cart-header">
       <div class="cart-title">Your Cart</div>
       <div class="cart-badge" id="cart-badge">0</div>
     </div>
 
+    <div class="cart-restaurant" id="cart-rest-name" style="display:none">
+      Ordering from <strong id="cart-rest-label">—</strong>
+    </div>
+
     <div class="cart-body" id="cart-body">
-      <div class="cart-empty-msg">Browse the menu and add items</div>
+      <div class="cart-empty-msg">
+        <div class="ce-icon">🛒</div>
+        <div>Browse the menu and add items</div>
+      </div>
     </div>
 
     <div class="cart-totals" id="cart-totals" style="display:none">
@@ -100,28 +135,31 @@
       <div class="total-row grand"><span>Total</span><span id="grand-total">₹40</span></div>
     </div>
 
-    <div id="checkout-form">
-      <!-- Hidden — auto-filled from localStorage -->
-		<input type="hidden" id="customer-id">
-      <div class="form-group">
-        <label>Payment Method</label>
-        <select id="payment-method">
-          <option value="UPI">UPI</option>
-          <option value="CREDIT_CARD">Credit Card</option>
-          <option value="DEBIT_CARD">Debit Card</option>
-          <option value="NET_BANKING">Net Banking</option>
-          <option value="CASH">Cash on Delivery</option>
-        </select>
-      </div>
-      <button class="btn btn-primary btn-full" id="place-btn" onclick="placeOrder()" disabled>Add items to order</button>
+    <!-- Shown when logged in and cart has items -->
+    <div class="cart-checkout" id="cart-checkout" style="display:none">
+      <select id="payment-method">
+        <option value="UPI">UPI</option>
+        <option value="CREDIT_CARD">Credit Card</option>
+        <option value="DEBIT_CARD">Debit Card</option>
+        <option value="NET_BANKING">Net Banking</option>
+        <option value="CASH">Cash on Delivery</option>
+      </select>
+      <button class="btn btn-primary btn-full" id="place-btn" onclick="placeOrder()">Place Order →</button>
       <div class="alert" id="order-alert"></div>
     </div>
 
+    <!-- Shown when NOT logged in and cart has items -->
+    <div class="cart-login-prompt" id="cart-login-prompt" style="display:none">
+      <div class="lock-icon">🔒</div>
+      <p>Please sign in to place your order</p>
+      <button class="btn btn-dark btn-full" onclick="saveCartAndRedirectToLogin()">Sign In to Order</button>
+    </div>
+
+    <!-- Order success -->
     <div class="order-success" id="order-success">
-      <div class="success-icon">🎉</div>
-      <h3>Order Placed!</h3>
-      <p id="order-id-msg">Your order is being prepared</p>
-      <br>
+      <div class="os-icon">🎉</div>
+      <div class="os-title">Order Placed!</div>
+      <div class="os-sub" id="os-sub">Your order is confirmed</div>
       <a href="orders.html" class="btn btn-primary btn-sm" style="margin-right:0.5rem">Track Order</a>
       <button class="btn btn-outline btn-sm" onclick="resetOrder()">New Order</button>
     </div>
@@ -136,18 +174,16 @@ document.getElementById('nav-placeholder').innerHTML = getNav('restaurants.html'
 document.getElementById('footer-placeholder').innerHTML = getFooter();
 renderNavUser();
 
-//Pre-fill customer ID from logged-in user
+// ── Auth ──
 const user = getUser();
-if (user) document.getElementById('customer-id').value = user.id || '';
+const isLoggedIn = !!(user && user.id);
 
 const params = new URLSearchParams(window.location.search);
 const restaurantId = parseInt(params.get('restaurantId'));
 if (!restaurantId) window.location.href = 'restaurants.html';
 
-let cart = {}; // { itemId: { id, name, price, qty } }
+let cart = {};
 let allItems = [];
-
-
 
 async function loadRestaurant() {
   try {
@@ -158,6 +194,7 @@ async function loadRestaurant() {
       document.getElementById('rh-rating').textContent = '★ ' + (r.rating > 0 ? r.rating : 'New');
       document.getElementById('rh-cuisine').textContent = r.cuisine;
       document.getElementById('rh-status').innerHTML = `<span class="badge ${r.isOpen ? 'badge-green' : 'badge-red'}">${r.isOpen ? 'Open' : 'Closed'}</span>`;
+      document.getElementById('cart-rest-label').textContent = r.name;
       document.title = 'Savor — ' + r.name;
     }
   } catch {}
@@ -180,6 +217,7 @@ async function loadMenu() {
     ).join('');
 
     renderItems(allItems);
+    updateCart(); // reflect any cart restored from sessionStorage
   } catch {
     container.innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Failed to load menu</div></div>';
   }
@@ -195,7 +233,7 @@ function renderItems(items) {
   document.getElementById('menu-items').innerHTML = items.map(item => `
     <div class="menu-item" id="item-${item.id}">
       <div class="mi-info">
-      <div class="mi-name">${item.name}${item.available === false ? '<span class="mi-unavail">(Unavailable)</span>' : ''}</div>
+        <div class="mi-name">${item.name}${item.available === false ? '<span class="mi-unavail">(Unavailable)</span>' : ''}</div>
         ${item.description ? `<div class="mi-desc">${item.description}</div>` : ''}
         <div class="mi-price">₹${item.price}</div>
       </div>
@@ -206,15 +244,15 @@ function renderItems(items) {
 }
 
 function renderCtrl(item) {
-	  const qty = cart[item.id]?.qty || 0;
-	  if (qty === 0) {
-	    return `<button class="add-btn" onclick="addItem(${item.id},'${escStr(item.name)}',${item.price})" ${item.available === false ? 'disabled' : ''}>Add +</button>`;
-	  }
-	  return `
-	    <button class="qty-btn" onclick="changeQty(${item.id},-1)">−</button>
-	    <span class="qty-num">${qty}</span>
-	    <button class="qty-btn" onclick="changeQty(${item.id},1)">+</button>`;
-	}
+  const qty = cart[item.id]?.qty || 0;
+  if (qty === 0) {
+    return `<button class="add-btn" onclick="addItem(${item.id},'${escStr(item.name)}',${item.price})" ${item.available === false ? 'disabled' : ''}>Add +</button>`;
+  }
+  return `
+    <button class="qty-btn" onclick="changeQty(${item.id},-1)">−</button>
+    <span class="qty-num">${qty}</span>
+    <button class="qty-btn" onclick="changeQty(${item.id},1)">+</button>`;
+}
 
 function escStr(s) { return s.replace(/'/g, "\\'"); }
 
@@ -229,7 +267,7 @@ function changeQty(id, delta) {
   cart[id].qty += delta;
   if (cart[id].qty <= 0) delete cart[id];
   const item = allItems.find(i => i.id === id);
-  if (item) { document.getElementById('ctrl-' + id).innerHTML = renderCtrl(item); }
+  if (item) document.getElementById('ctrl-' + id).innerHTML = renderCtrl(item);
   updateCart();
 }
 
@@ -238,6 +276,7 @@ function refreshCtrl(id) {
   if (item) document.getElementById('ctrl-' + id).innerHTML = renderCtrl(item);
 }
 
+// ── Update cart UI ──
 function updateCart() {
   const items = Object.values(cart);
   const count = items.reduce((s, i) => s + i.qty, 0);
@@ -248,45 +287,86 @@ function updateCart() {
   document.getElementById('cart-badge').textContent = count;
 
   const body = document.getElementById('cart-body');
+  const totals = document.getElementById('cart-totals');
+  const checkout = document.getElementById('cart-checkout');
+  const loginPrompt = document.getElementById('cart-login-prompt');
+  const restName = document.getElementById('cart-rest-name');
+
   if (!items.length) {
-    body.innerHTML = '<div class="cart-empty-msg">Browse the menu and add items</div>';
-    document.getElementById('cart-totals').style.display = 'none';
-    const btn = document.getElementById('place-btn');
-    btn.disabled = true; btn.textContent = 'Add items to order';
+    body.innerHTML = `<div class="cart-empty-msg"><div class="ce-icon">🛒</div><div>Browse the menu and add items</div></div>`;
+    totals.style.display = 'none';
+    checkout.style.display = 'none';
+    loginPrompt.style.display = 'none';
+    restName.style.display = 'none';
     return;
   }
 
   body.innerHTML = items.map(i => `
     <div class="cart-item-row">
-      <span class="ci-name">${i.name}</span>
+      <span class="ci-name" title="${i.name}">${i.name}</span>
       <span class="ci-qty">×${i.qty}</span>
       <span class="ci-price">₹${(i.price * i.qty).toFixed(0)}</span>
-      <button class="ci-remove" onclick="changeQty(${i.id},-999)">✕</button>
+      <button class="ci-remove" onclick="changeQty(${i.id},-999)" title="Remove">✕</button>
     </div>`).join('');
 
   document.getElementById('subtotal').textContent = '₹' + subtotal;
   document.getElementById('tax').textContent = '₹' + tax;
   document.getElementById('grand-total').textContent = '₹' + total;
-  document.getElementById('cart-totals').style.display = 'block';
 
-  const btn = document.getElementById('place-btn');
-  btn.disabled = false; btn.textContent = 'Place Order →';
+  totals.style.display = 'block';
+  restName.style.display = 'block';
+
+  // Show checkout or login prompt based on auth state
+  if (isLoggedIn) {
+    checkout.style.display = 'flex';
+    loginPrompt.style.display = 'none';
+  } else {
+    checkout.style.display = 'none';
+    loginPrompt.style.display = 'block';
+  }
 }
 
+// ── Save cart to sessionStorage and redirect to login ──
+function saveCartAndRedirectToLogin() {
+  sessionStorage.setItem('savor_pending_cart', JSON.stringify(cart));
+  sessionStorage.setItem('savor_redirect_after_login', window.location.href);
+  window.location.href = 'login.html';
+}
+
+// ── Restore cart saved before login redirect ──
+function restorePendingCart() {
+  const saved = sessionStorage.getItem('savor_pending_cart');
+  if (!saved) return;
+  try {
+    const savedCart = JSON.parse(saved);
+    Object.assign(cart, savedCart);
+    sessionStorage.removeItem('savor_pending_cart');
+  } catch {}
+}
+
+// ── Place Order ──
 async function placeOrder() {
-  const customerId = parseInt(document.getElementById('customer-id').value);
+  // Belt-and-suspenders auth guard
+  if (!isLoggedIn || !user?.id) {
+    saveCartAndRedirectToLogin();
+    return;
+  }
+
   const paymentMethod = document.getElementById('payment-method').value;
   const alertEl = document.getElementById('order-alert');
   const items = Object.values(cart);
 
-  if (!customerId) { alertEl.textContent = 'Please enter your Customer ID'; alertEl.className = 'alert show alert-error'; return; }
-  if (!items.length) { alertEl.textContent = 'Your cart is empty'; alertEl.className = 'alert show alert-error'; return; }
+  if (!items.length) {
+    alertEl.textContent = 'Your cart is empty';
+    alertEl.className = 'alert show alert-error'; return;
+  }
 
   const btn = document.getElementById('place-btn');
-  btn.disabled = true; btn.innerHTML = '<span class="spinner" style="width:18px;height:18px;border-width:2px"></span>';
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner" style="width:16px;height:16px;border-width:2px;display:inline-block"></span> Placing...';
 
   const body = {
-    customerId,
+    customerId: user.id,   // always from localStorage — no manual input
     restaurantId,
     paymentMethod,
     items: items.map(i => ({ menuItemId: i.id, quantity: i.qty }))
@@ -295,10 +375,12 @@ async function placeOrder() {
   try {
     const { ok, data } = await api('POST', '/order/place', body);
     if (ok) {
-      document.getElementById('checkout-form').style.display = 'none';
+      document.getElementById('cart-checkout').style.display = 'none';
       document.getElementById('cart-totals').style.display = 'none';
+      document.getElementById('cart-body').style.display = 'none';
+      document.getElementById('cart-rest-name').style.display = 'none';
       document.getElementById('order-success').style.display = 'block';
-      document.getElementById('order-id-msg').textContent = `Order #${data.data?.id} confirmed! Estimated delivery in 30-45 mins.`;
+      document.getElementById('os-sub').textContent = `Order #${data.data?.id} confirmed! Estimated delivery in 30–45 mins.`;
       showToast('🎉 Order placed successfully!', 'success');
     } else {
       alertEl.textContent = data.message || 'Order failed. Please try again.';
@@ -314,13 +396,20 @@ async function placeOrder() {
 
 function resetOrder() {
   cart = {};
-  document.getElementById('checkout-form').style.display = 'block';
+  document.getElementById('cart-body').style.display = 'block';
+  document.getElementById('cart-rest-name').style.display = 'none';
   document.getElementById('order-success').style.display = 'none';
+  document.getElementById('cart-checkout').style.display = 'none';
+  document.getElementById('cart-login-prompt').style.display = 'none';
+  document.getElementById('cart-totals').style.display = 'none';
   document.getElementById('order-alert').className = 'alert';
+  document.getElementById('place-btn').disabled = false;
+  document.getElementById('place-btn').textContent = 'Place Order →';
   updateCart();
   renderItems(allItems);
 }
 
+restorePendingCart();   // merge any cart saved before login redirect
 loadRestaurant();
 loadMenu();
 </script>
