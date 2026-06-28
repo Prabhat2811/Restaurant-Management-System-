@@ -77,7 +77,16 @@ nav {
 .hero-actions { display: flex; gap: 0.7rem; flex-wrap: wrap; }
 
 /* ── Page Layout ── */
-.page-layout { display: grid; grid-template-columns: 260px 1fr 320px; gap: 1.5rem; max-width: 1300px; margin: 2rem auto; padding: 0 1.5rem 4rem; align-items: start; }
+.page-layout { 
+  display: grid; 
+  grid-template-columns: 260px 1fr 320px; 
+  gap: 1.5rem; 
+  max-width: 1300px; 
+  margin: 2rem auto; 
+  padding: 0 1.5rem 4rem; 
+  align-items: start;
+  width: 100%; /* Add this to ensure fluidity */
+}
 
 /* ── Categories Sidebar ── */
 .cat-sidebar { background: white; border-radius: 8px; border: 1px solid var(--border); overflow: hidden; position: sticky; top: 70px; }
