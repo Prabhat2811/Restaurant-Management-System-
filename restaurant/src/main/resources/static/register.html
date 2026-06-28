@@ -163,7 +163,7 @@ function showResponse(id, msg, type) {
   el.style.display = 'block';
 }
 
-const BASE="https://restaurant-management-system-2-x0md.onrender.com";
+
 
 async function register() {
 	  const fname = document.getElementById('reg-fname').value.trim();
@@ -187,7 +187,7 @@ async function register() {
 	  };
 
 	  try {
-	    const res = await fetch(`${BASE}/api/auth/register`, {   // ← fixed endpoint
+	    const res = await fetch("https://restaurant-management-system-2-x0md.onrender.com/api/auth/register", {   // ← fixed endpoint
 	      method: 'POST',
 	      headers: { 'Content-Type': 'application/json' },
 	      body: JSON.stringify(body)
