@@ -1,7 +1,7 @@
 // ============================================================
 // SAVOR — Shared Utilities
 // ============================================================
-const BASE = 'http://localhost:8080';
+const BASE = "";
 
 // --- Storage helpers ---
 const Store = {
