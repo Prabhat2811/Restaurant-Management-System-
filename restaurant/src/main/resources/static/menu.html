@@ -41,6 +41,7 @@ nav {
 /* ── Restaurant Hero Banner ── */
 .restaurant-hero {
   background: var(--dark); position: relative; overflow: hidden;
+  width: 100%;
 }
 .hero-img-area {
   height: 240px; display: flex; align-items: center; justify-content: center;
@@ -148,9 +149,23 @@ nav {
   background: linear-gradient(135deg, #2A1A0A, #4A2A10);
   display: flex; align-items: center; justify-content: center; font-size: 1.8rem;
 }
-.item-info { flex: 1; min-width: 0; }
+.item-info { 
+  flex: 1; 
+  min-width: 0; 
+  width: 0; /* Forces the flex child to obey parent boundaries */
+}
 .item-name { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.18rem; }
-.item-desc { color: var(--warm-gray); font-size: 0.78rem; line-height: 1.5; margin-bottom: 0.4rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item-desc { 
+  color: var(--warm-gray); 
+  font-size: 0.78rem; 
+  line-height: 1.5; 
+  margin-bottom: 0.4rem; 
+  /* Allows text to wrap up to 2 lines cleanly */
+  display: -webkit-box;
+  -webkit-line-clamp: 2; 
+  -webkit-box-orient: vertical;
+  overflow: hidden; 
+}
 .item-badges { display: flex; gap: 0.4rem; flex-wrap: wrap; }
 .item-badge { font-size: 0.67rem; padding: 0.12rem 0.4rem; border-radius: 2px; }
 .badge-unavail { background: #FEE2E2; color: #991B1B; }
